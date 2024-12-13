@@ -41,15 +41,16 @@ if (isset($_POST['save'])) {
     $jam_masuk = htmlspecialchars($_POST['jam_masuk']);
     $jam_pulang = htmlspecialchars($_POST['jam_pulang']);
     $alamat = htmlspecialchars($_POST['alamat']);
+    $jam_kerja = $jam_masuk . '-' . $jam_pulang;
     $mode = $_POST['mode'];
 
     if ($mode == "add") {
-        $con->query("INSERT INTO sales (nama_lengkap, nik, username,password,tanggal_lahir, jam_masuk, jam_pulang, alamat) VALUES ('$nama_lengkap', '$nik', '$username', '$password', '$tanggal_lahir', '$jam_masuk', '$jam_pulang', '$alamat')");
+        $con->query("INSERT INTO sales (nama_lengkap, nik, username,password,tanggal_lahir, jam_masuk, jam_pulang, alamat, jam_kerja) VALUES ('$nama_lengkap', '$nik', '$username', '$password', '$tanggal_lahir', '$jam_masuk', '$jam_pulang', '$alamat', '$jam_kerja')");
         $con->query("INSERT INTO user (nama_lengkap, username,password, role) VALUES ('$nama_lengkap', '$username', '$password', 'sales')");
         echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=data-sales';</script>";
     } elseif ($mode == "edit") {
         $edit_id = $_POST['edit_id'];
-        $con->query("UPDATE sales SET nama_lengkap='$nama_lengkap', nik='$nik', username='$username', password='$password', tanggal_lahir='$tanggal_lahir', jam_masuk='$jam_masuk', jam_pulang='$jam_pulang', alamat='$alamat' WHERE id='$edit_id'");
+        $con->query("UPDATE sales SET nama_lengkap='$nama_lengkap', nik='$nik', username='$username', password='$password', tanggal_lahir='$tanggal_lahir', jam_masuk='$jam_masuk', jam_pulang='$jam_pulang', alamat='$alamat', jam_kerja='$jam_kerja' WHERE id='$edit_id'");
         echo "<script>alert('Data berhasil diupdate'); document.location.href='index.php?hal=data-sales';</script>";
     }
 }

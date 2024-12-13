@@ -41,8 +41,10 @@ if (isset($_GET['edit'])) {
 if (isset($_POST['save'])) {
     $tgl = htmlspecialchars($_POST['tgl']);
     $nama_obat = htmlspecialchars($_POST['nama_obat']);
+    $suplier = htmlspecialchars($_POST['suplier']);
     $namasuplier = htmlspecialchars($_POST['namasuplier']);
     $nohp = htmlspecialchars($_POST['nohp']);
+    $nomorhp = htmlspecialchars($_POST['nomorhp']);
     $harga = htmlspecialchars($_POST['harga']);
     $jumlah = htmlspecialchars($_POST['jumlah']);
     $ppn = htmlspecialchars($_POST['ppn']);
@@ -50,22 +52,41 @@ if (isset($_POST['save'])) {
     $jatuh_tempo = htmlspecialchars($_POST['jatuh_tempo']);
     $tgl_exp = htmlspecialchars($_POST['tgl_exp']);
     $no_batch = htmlspecialchars($_POST['no_batch']);
-    $tipe = htmlspecialchars('Non Pajak');
-    $status = htmlspecialchars('Belum Datang');
+    $tipe = 'Non Pajak';
+    $status = 'Belum Datang';
     $mode = $_POST['mode'];
-    $created_at = date('Ymdhis');
-    $updated_at = date('Ymdhis');
+    $created_at = date('Y-m-d H:i:s');
+    $updated_at = date('Y-m-d H:i:s');
+
+    $final_suplier = !empty($suplier) ? $suplier : $namasuplier;
+    $final_nohp = !empty($nohp) ? $nohp : $nomorhp;
 
     if ($mode == "add") {
-        $con->query("INSERT INTO pembelian (tgl, nama_obat, namasuplier, nohp, harga, ppn, total, tgl_exp, no_batch, tipe, status, jumlah, jatuh_tempo, created_at) VALUES ('$tgl', '$nama_obat', '$namasuplier', '$nohp', '$harga', '$ppn', '$total', '$tgl_exp', '$no_batch', '$tipe', '$status', '$jumlah', '$created_at', '$updated_at')");
-        echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=pembelian';</script>";
+        $query = "INSERT INTO pembelian 
+                    (tgl, nama_obat, namasuplier, nohp, harga, ppn, total, tgl_exp, no_batch, tipe, status, jumlah, jatuh_tempo, created_at, updated_at) 
+                  VALUES 
+                    ('$tgl', '$nama_obat', '$final_suplier', '$final_nohp', '$harga', '$ppn', '$total', '$tgl_exp', '$no_batch', '$tipe', '$status', '$jumlah', '$jatuh_tempo', '$created_at', '$updated_at')";
+        if ($con->query($query)) {
+            echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=pembelian';</script>";
+        } else {
+            echo "<script>alert('Gagal menambahkan data: " . $con->error . "'); document.location.href='index.php?hal=pembelian';</script>";
+        }
     } elseif ($mode == "edit") {
-        $edit_id = $_POST['edit_id'];
-        $con->query("UPDATE pembelian SET tgl='$tgl', nama_obat='$nama_obat',jumlah='$jumlah', namasuplier='$namasuplier', nohp='$nohp', harga='$harga',ppn='$ppn',total='$total',jatuh_tempo='$jatuh_tempo',tgl_exp='$tgl_exp',no_batch='$no_batch' WHERE id_pembelian='$edit_id'");
-
-        echo "<script>alert('Data berhasil diupdate'); document.location.href='index.php?hal=pembelian';</script>";
+        $edit_id = htmlspecialchars($_POST['edit_id']);
+        $query = "UPDATE pembelian 
+                  SET tgl='$tgl', nama_obat='$nama_obat', jumlah='$jumlah', namasuplier='$final_suplier', 
+                      nohp='$nohp', harga='$harga', ppn='$ppn', total='$total', jatuh_tempo='$jatuh_tempo', 
+                      tgl_exp='$tgl_exp', no_batch='$no_batch', updated_at='$updated_at' 
+                  WHERE id_pembelian='$edit_id'";
+        if ($con->query($query)) {
+            echo "<script>alert('Data berhasil diupdate'); document.location.href='index.php?hal=pembelian';</script>";
+        } else {
+            echo "<script>alert('Gagal mengupdate data: " . $con->error . "'); document.location.href='index.php?hal=pembelian';</script>";
+        }
     }
 }
+
+
 if (isset($_GET['delete'])) {
     $id = htmlspecialchars($_GET['delete']);
     $query = $con->query("DELETE FROM pembelian WHERE id_pembelian='$id'");
@@ -76,6 +97,7 @@ if (isset($_GET['delete'])) {
         echo "<script>alert('Gagal menghapus data: " . $con->error . "'); document.location.href='index.php?hal=pembelian';</script>";
     }
 }
+
 ?>
 
 
@@ -91,7 +113,7 @@ if (isset($_GET['delete'])) {
                             <div class="">
                                 <label for="" class="form-label">Tanggal</label>
                                 <div class="input-group">
-                                    <input type="date" class="form-control" name="tgl" id="tgl" value="<?= htmlspecialchars($tgl); ?>" required>
+                                    <input type="text" class="form-control" name="tgl" id="tgl" value="<?= htmlspecialchars(date('Y-m-d')); ?>" required>
                                 </div>
                             </div>
                             <div class="">
@@ -162,11 +184,16 @@ if (isset($_GET['delete'])) {
                         </div>
 
                         <div class="">
-                            <label for="" class="form-label">No Handphone</label>
+                            <label for="" class="form-label">No HP Supplier</label>
                             <div class="row">
                                 <div class="col-6">
                                     <div class="input-group">
-                                        <input type="text" name="nohp" class="form-control" id="nohp" placeholder="No HP suplier" value="<?= htmlspecialchars($nohp); ?>" readonly>
+                                        <input type="text" name="nohp" class="form-control" id="nohp" placeholder="No HP suplier" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <input type="text" name="nomorhp" class="form-control" id="nomorhp" placeholder="Isi no HP suplier jika belum terisi" value="<?= htmlspecialchars($nohp); ?>">
                                     </div>
                                 </div>
                             </div>
@@ -197,84 +224,87 @@ if (isset($_GET['delete'])) {
             </div>
         </div>
     </div>
-</div>
 
-<!-- TABLE -->
-<div class="row">
-    <div class="col-12">
-        <div class="card mb-4">
-            <div class="card-header pb-0">
-                <h6>Daftar Pembelian</h6>
-            </div>
-            <div class="card shadow p-2">
-                <div class="table-responsive">
-                    <table id="myTable" class="display">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>ID Pembelian</th>
-                                <th>Tanggal</th>
-                                <th>Nama Obat</th>
-                                <th>Nama Suplier</th>
-                                <th>No HP</th>
-                                <th>Jumlah</th>
-                                <th>Harga</th>
-                                <th>PPN</th>
-                                <th>Total</th>
-                                <th>Tipe</th>
-                                <th>Jatuh Tempo</th>
-                                <th>Tanggal Expired</th>
-                                <th>No Batch</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $ambil = $con->query("SELECT * FROM pembelian");
-                            $no = 1;
-                            while ($pecah = $ambil->fetch_assoc()) { ?>
-                                <tr>
-                                    <td><?php echo $no++; ?></td>
-                                    <td><?php echo $pecah["id_pembelian"]; ?></td>
-                                    <td><?php echo $pecah["tgl"]; ?></td>
-                                    <td><?php echo $pecah["nama_obat"]; ?></td>
-                                    <td><?php echo $pecah["namasuplier"]; ?></td>
-                                    <td><?php echo $pecah["nohp"]; ?></td>
-                                    <td><?php echo $pecah["jumlah"]; ?></td>
-                                    <td><?php echo $pecah["harga"]; ?></td>
-                                    <td><?php echo $pecah["ppn"]; ?></td>
-                                    <td><?php echo $pecah["total"]; ?></td>
-                                    <td><?php echo $pecah["tipe"]; ?></td>
-                                    <td><?php echo $pecah["jatuh_tempo"]; ?></td>
-                                    <td><?php echo $pecah["tgl_exp"]; ?></td>
-                                    <td><?php echo $pecah["no_batch"]; ?></td>
-                                    <td><?php echo $pecah["status"]; ?></td>
-                                    <td>
-                                        <a href="index.php?hal=pembelian&edit=<?php echo $pecah['id_pembelian']; ?>" class="btn btn-primary btn-edit">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <button class="btn btn-danger" name="delete">
-                                            <a href="index.php?hal=pembelian&delete=<?php echo $pecah['id_pembelian']; ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                                <i class="bi bi-trash text-white"></i>
-                                            </a>
-                                        </button>
-                                    </td>
-
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
+    <!-- TABLE -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <h6>Daftar Pembelian</h6>
                 </div>
+                <div class="card shadow p-2">
+                    <div class="table-responsive">
+                        <table id="myTable" class="display">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>ID Pembelian</th>
+                                    <th>Tanggal</th>
+                                    <th>Nama Obat</th>
+                                    <th>Nama Suplier</th>
+                                    <th>No HP</th>
+                                    <th>Jumlah</th>
+                                    <th>Harga</th>
+                                    <th>PPN</th>
+                                    <th>Total</th>
+                                    <th>Tipe</th>
+                                    <th>Jatuh Tempo</th>
+                                    <th>Tanggal Expired</th>
+                                    <th>No Batch</th>
+                                    <th>Status</th>
+                                    <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                    <th>Aksi</th>
+                                    <?php endif?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $ambil = $con->query("SELECT * FROM pembelian");
+                                $no = 1;
+                                while ($pecah = $ambil->fetch_assoc()) { ?>
+                                    <tr>
+                                        <td><?php echo $no++; ?></td>
+                                        <td><?php echo $pecah["id_pembelian"]; ?></td>
+                                        <td><?php echo $pecah["tgl"]; ?></td>
+                                        <td><?php echo $pecah["nama_obat"]; ?></td>
+                                        <td><?php echo $pecah["namasuplier"]; ?></td>
+                                        <td><?php echo $pecah["nohp"]; ?></td>
+                                        <td><?php echo $pecah["jumlah"]; ?></td>
+                                        <td><?php echo $pecah["harga"]; ?></td>
+                                        <td><?php echo $pecah["ppn"]; ?></td>
+                                        <td><?php echo $pecah["total"]; ?></td>
+                                        <td><?php echo $pecah["tipe"]; ?></td>
+                                        <td><?php echo $pecah["jatuh_tempo"]; ?></td>
+                                        <td><?php echo $pecah["tgl_exp"]; ?></td>
+                                        <td><?php echo $pecah["no_batch"]; ?></td>
+                                        <td><?php echo $pecah["status"]; ?></td>
+                                        <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                            <td>
+                                                <a href="index.php?hal=pembelian&edit=<?php echo $pecah['id_pembelian']; ?>" class="btn btn-primary btn-edit">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <button class="btn btn-danger" name="delete">
+                                                    <a href="index.php?hal=pembelian&delete=<?php echo $pecah['id_pembelian']; ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                                        <i class="bi bi-trash text-white"></i>
+                                                    </a>
+                                                </button>
+                                            </td>
+                                        <?php endif ?>
+
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <script>
+                    $(document).ready(function() {
+                        $('#myTable').DataTable();
+                    });
+                </script>
             </div>
-            <script>
-                $(document).ready(function() {
-                    $('#myTable').DataTable();
-                });
-            </script>
         </div>
     </div>
-</div>
 </div>
 
 <script>

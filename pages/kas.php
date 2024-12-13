@@ -50,19 +50,6 @@ if (isset($_POST['save'])) {
                     <h4>KAS</h4>
                     <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#tambahModal">Tambah Transaksi</button>
                 </div>
-                <!-- <div class="card-body">
-                    <form action="" method="GET" class="d-flex gap-2">
-                        <input type="hidden" name="hal" value="transaksi">
-                        <input type="text" name="search" class="form-control" style="height: calc(1.5em + 0.75rem + 2px);" placeholder="Cari" value="<?= isset($_GET['search']) ? $_GET['search'] : '' ?>">
-                        <button type="submit" class="btn btn-secondary btn-sm">Cari</button>
-                    </form>
-                    <form action="" method="GET" class="d-flex gap-2">
-                        <input type="hidden" name="hal" value="transaksi">
-                        <input type="date" name="start_date" class="form-control" style="height: calc(1.5em + 0.75rem + 2px);" required>
-                        <input type="date" name="end_date" class="form-control" style="height: calc(1.5em + 0.75rem + 2px);" required>
-                        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-                    </form>
-                </div> -->
                 <div class="card shadow p-3">
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
@@ -104,27 +91,6 @@ if (isset($_POST['save'])) {
                                         $cekPage = '1';
                                     }
                                     // End Pagination
-
-                                    // $where_clauses = [];
-                                    
-                                    // if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
-                                    //     $start_date = $_GET['start_date'];
-                                    //     $end_date = $_GET['end_date'];
-                                    //     if (!empty($start_date) && !empty($end_date)) {
-                                    //         $where_clauses[] = "tgl BETWEEN '$start_date' AND '$end_date'";
-                                    //     }
-                                    // }
-                                    
-                                    // if (isset($_GET['search'])) {
-                                    //     $search = htmlspecialchars($_GET['search']);
-                                    //     $where_clauses[] = "(namaakun LIKE '%$search%' OR ket1 LIKE '%$search%' OR ket2 LIKE '%$search%')";
-                                    // }
-                                    
-                                    // if (!empty($where_clauses)) {
-                                    //     $query .= " WHERE " . implode(' AND ', $where_clauses);
-                                    //     $query .= " ORDER BY idtx DESC";
-                                    // }
-                                    
                                     
                                     $getData = $conakuntansi->query($query." LIMIT $start, $limit;");
                                     $getTotal = $conakuntansi->query("SELECT SUM(debet - kredit) AS total_saldo FROM transaksibaru WHERE namaakun = 'kas'")->fetch_assoc()['total_saldo'];

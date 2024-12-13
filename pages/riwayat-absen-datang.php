@@ -20,6 +20,7 @@
                                 <th>Jam Masuk</th>
                                 <th>Status</th>
                                 <th>Foto Absen</th>
+                                <th>Maps</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -36,6 +37,9 @@
                                     <td><?php echo $pecah["status_masuk"]; ?></td>
                                     <td>
                                     <img src="assets/foto/absensi/<?php echo $pecah["foto_absen"]; ?>" alt="Foto Absen" width="100" />
+                                    </td>
+                                    <td>
+                                        <a href="https://www.google.com/maps/place/<?php echo $pecah["latitude"]; ?>,<?php echo $pecah["longitude"]; ?>" target="_blank">Lihat Maps</a>
                                     </td>
                                 </tr>
                             <?php } ?>

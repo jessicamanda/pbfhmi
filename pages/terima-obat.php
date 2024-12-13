@@ -8,32 +8,49 @@ if (isset($_POST['save'])) {
     $id_pembelian = $_POST['id'];
     $tgl_terima = $_POST['tgl_terima'];
     $nama_obat = $_POST['nama_obat'];
-    $jumlah_terima = $_POST['jumlah_terima'];
+    $jumlah_terima = (int)$_POST['jumlah_terima'];
     $id_tempat = $_POST['id_tempat'];
 
-    $query_insert = "INSERT INTO terima (id_pembelian, tgl_terima, nama_obat, jumlah_terima, id_tempat) 
-                     VALUES ('$id_pembelian', '$tgl_terima', '$nama_obat', '$jumlah_terima', '$id_tempat')";
+    $con->begin_transaction();
 
-    $query_update = "UPDATE pembelian SET status='Sudah Datang' WHERE id_pembelian = '$id_pembelian'";
+    try {
+        $result = $con->query("SELECT pembelian.jumlah, COALESCE(SUM(terima.jumlah_terima), 0) AS total 
+                               FROM pembelian 
+                               LEFT JOIN terima ON pembelian.id_pembelian = terima.id_pembelian 
+                               WHERE pembelian.id_pembelian = '$id_pembelian' 
+                               GROUP BY pembelian.id_pembelian");
+        $row = $result->fetch_assoc();
+        $sisa = $row['jumlah'] - $row['total'];
 
-
-    if ($con->query($query_insert) && $con->query($query_update)) {
-        $stok = $con->query("SELECT * FROM stok WHERE nama_obat = '$nama_obat'");
-
-        if ($stok->num_rows > 0) {
-            $con->query("UPDATE stok 
-                     SET stok = stok + $jumlah_terima 
-                     WHERE nama_obat = '$nama_obat'");
-        } else {
-            $con->query("INSERT INTO stok (nama_obat, stok) 
-                     VALUES ('$nama_obat', '$jumlah_terima')");
+        if ($jumlah_terima > $sisa) {
+            throw new Exception("Jumlah terima melebihi sisa yang diperbolehkan.");
         }
 
-        echo "<script>alert('Data dan stok berhasil diperbarui'); document.location.href='index.php?hal=kedatangan-obat';</script>";
-    } else {
-        echo "<script>alert('Gagal menyimpan data: " . $con->error . "');</script>";
+        $query_insert = "INSERT INTO terima (id_pembelian, tgl_terima, nama_obat, jumlah_terima, id_tempat) 
+                         VALUES ('$id_pembelian', '$tgl_terima', '$nama_obat', '$jumlah_terima', '$id_tempat')";
+        $con->query($query_insert);
+
+        if ($sisa === $jumlah_terima) {
+            $query_update = "UPDATE pembelian SET status='Sudah Datang' WHERE id_pembelian = '$id_pembelian'";
+            $con->query($query_update);
+        }
+
+        $stok = $con->query("SELECT * FROM stok WHERE nama_obat = '$nama_obat'");
+        if ($stok->num_rows > 0) {
+            $con->query("UPDATE stok SET stok = stok + $jumlah_terima WHERE nama_obat = '$nama_obat'");
+        } else {
+            $con->query("INSERT INTO stok (nama_obat, stok) VALUES ('$nama_obat', '$jumlah_terima')");
+        }
+
+        $con->commit();
+        echo "<script>alert('Data dan stok berhasil diperbarui'); document.location.href='index.php?hal=terima-obat';</script>";
+    } catch (Exception $e) {
+        $con->rollback();
+        echo "<script>alert('Gagal menyimpan data: " . $e->getMessage() . "');</script>";
     }
 }
+
+
 ?>
 
 <style>
@@ -46,19 +63,22 @@ if (isset($_POST['save'])) {
 </style>
 
 <?php
-$ambil = $con->query("SELECT pembelian.id_pembelian, pembelian.tgl, pembelian.nama_obat, pembelian.jumlah, 
-pembelian.namasuplier, terima.tgl_terima, terima.jumlah_terima
-FROM pembelian
+$ambil = $con->query("SELECT 
+    pembelian.id_pembelian, pembelian.jumlah, pembelian.namasuplier, pembelian.nama_obat, 
+    terima.tgl_terima, pembelian.tgl, terima.id_tempat, terima.jumlah_terima, COALESCE(SUM(terima.jumlah_terima), 0) AS total
+FROM pembelian 
 LEFT JOIN terima ON pembelian.id_pembelian = terima.id_pembelian
-WHERE pembelian.id_pembelian
-ORDER BY pembelian.id_pembelian, terima.tgl_terima");
-
+GROUP BY pembelian.id_pembelian
+HAVING (pembelian.jumlah - total) > 0
+ORDER BY pembelian.id_pembelian;
+    ");
 
 $data = [];
 while ($row = $ambil->fetch_assoc()) {
     $id_pembelian = $row['id_pembelian'];
     if (!isset($data[$id_pembelian])) {
         $data[$id_pembelian] = [
+            'tgl' => $row['tgl'],
             'tgl' => $row['tgl'],
             'nama_obat' => $row['nama_obat'],
             'jumlah' => $row['jumlah'],
@@ -69,8 +89,10 @@ while ($row = $ambil->fetch_assoc()) {
     $data[$id_pembelian]['terima'][] = [
         'tgl_terima' => $row['tgl_terima'],
         'jumlah_terima' => $row['jumlah_terima'],
+        'id_tempat' => $row['id_tempat'],
     ];
 }
+
 ?>
 
 <div class="row">
@@ -89,22 +111,26 @@ while ($row = $ambil->fetch_assoc()) {
                                 <th rowspan="2">Nama Obat</th>
                                 <th rowspan="2">Jumlah Order</th>
                                 <th rowspan="2">Nama Suplier</th>
-                                <th colspan="2" style="text-align: center;">Terima</th>
-                                <th rowspan="2">Sisa yang harus diterima</th>
+                                <th colspan="2" style="text-align: center;">Penerimaan</th>
+                                <th rowspan="2">Sisa terima-obat</th>
                                 <th rowspan="2">Aksi</th>
                             </tr>
                             <tr>
+                                <!-- <th>Ke</th> -->
                                 <th>Tanggal Terima</th>
                                 <th>Jumlah Terima</th>
                             </tr>
                         </thead>
-                        <!-- <tbody>
+                        <tbody>
                             <?php
                             $no = 1;
+                            $nomer = 1;
                             foreach ($data as $id_pembelian => $item) {
                                 $sisa = $item['jumlah'];
-                                foreach ($item['terima'] as $terima) {
-                                    $sisa -= $terima['jumlah_terima'];
+                                if (!empty($item['terima'])) {
+                                    foreach ($item['terima'] as $terima) {
+                                        $sisa -= $terima['jumlah_terima'];
+                                    }
                                 }
                             ?>
                                 <tr>
@@ -113,6 +139,11 @@ while ($row = $ambil->fetch_assoc()) {
                                     <td><?php echo htmlspecialchars($item['nama_obat']); ?></td>
                                     <td><?php echo htmlspecialchars($item['jumlah']); ?></td>
                                     <td><?php echo htmlspecialchars($item['namasuplier']); ?></td>
+                                    <!-- <td><?php
+                                                foreach ($item['terima'] as $terima) {
+                                                    echo $nomer++ . '<br>';
+                                                }
+                                                ?></td> -->
                                     <td>
                                         <?php
                                         foreach ($item['terima'] as $terima) {
@@ -139,52 +170,17 @@ while ($row = $ambil->fetch_assoc()) {
                                     </td>
                                 </tr>
                             <?php } ?>
-                        </tbody> -->
-                        <tbody>
-                            <?php
-                            $no = 1;
-                            foreach ($data as $id_pembelian => $item) {
-                                $sisa = $item['jumlah'];
-                                // Menampilkan setiap baris untuk setiap entri 'terima'
-                                foreach ($item['terima'] as $terima) {
-                                    $sisa -= $terima['jumlah_terima'];
-                            ?>
-                                    <tr>
-                                        <td><?php echo $no++; ?></td>
-                                        <td><?php echo htmlspecialchars($item['tgl']); ?></td>
-                                        <td><?php echo htmlspecialchars($item['nama_obat']); ?></td>
-                                        <td><?php echo htmlspecialchars($item['jumlah']); ?></td>
-                                        <td><?php echo htmlspecialchars($item['namasuplier']); ?></td>
-                                        <td><?php echo htmlspecialchars($terima['tgl_terima']); ?></td>
-                                        <td><?php echo htmlspecialchars($terima['jumlah_terima']); ?></td>
-                                        <td><?php echo htmlspecialchars($sisa); ?></td>
-                                        <td>
-                                            <button type="button" class="btn btn-success btn-add" data-toggle="modal" data-target="#terima"
-                                                data-id="<?php echo htmlspecialchars($id_pembelian); ?>"
-                                                data-nama_obat="<?php echo htmlspecialchars($item['nama_obat']); ?>"
-                                                data-tgl="<?php echo htmlspecialchars($item['tgl']); ?>"
-                                                data-jumlah="<?php echo htmlspecialchars($item['jumlah']); ?>">
-                                                Terima
-                                            </button>
-                                        </td>
-                                    </tr>
-                            <?php
-                                }
-                            }
-                            ?>
                         </tbody>
-
                     </table>
                 </div>
             </div>
-
             <div class="modal fade" id="terima" role="dialog" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel">Terima Obat</h5>
                         </div>
-                        <form action="" method="post" id="terima_form">
+                        <form action="" method="post" id="terima_form" enctype="multipart/form-data">
                             <div class="modal-body">
                                 <input type="hidden" class="form-control" name="id" id="id_pembelian" readonly>
                                 <div>
@@ -200,11 +196,11 @@ while ($row = $ambil->fetch_assoc()) {
                                     <input type="text" class="form-control" name="jumlah" id="jumlah" readonly>
                                 </div>
                                 <div>
-                                    <label for="tgl_terima" class="form-label">Tanggal Terima</label>
+                                    <label for="tgl_terima" class="form-label">Tanggal terima</label>
                                     <input type="date" class="form-control" name="tgl_terima" id="tgl_terima" value="<?php echo date('Y-m-d'); ?>" required>
                                 </div>
                                 <div>
-                                    <label for="jumlah_terima" class="form-label">Jumlah Terima</label>
+                                    <label for="jumlah_terima" class="form-label">jumlah terima</label>
                                     <input type="text" class="form-control" name="jumlah_terima" id="jumlah_terima" required>
                                 </div>
                                 <div>

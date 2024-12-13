@@ -142,7 +142,7 @@ while ($row = $ambil->fetch_assoc()) {
                                     <td><?php echo htmlspecialchars($item['tgl']); ?></td>
                                     <td><?php echo htmlspecialchars($item['nama_obat']); ?></td>
                                     <td><?php echo htmlspecialchars($item['jumlah']); ?></td>
-                                    <td><?php echo htmlspecialchars($item['total']); ?></td>
+                                    <td>Rp <?= number_format($item['total'], 0, ',', '.') ?></td>
                                     <td><?php echo htmlspecialchars($item['namasuplier']); ?></td>
                                     <td><?php echo htmlspecialchars($item['nohp']); ?></td>
                                     <td><?php
@@ -167,13 +167,15 @@ while ($row = $ambil->fetch_assoc()) {
                                     <td>
                                         <?php
                                         foreach ($item['pembayaran'] as $pembayaran) {
-                                            echo htmlspecialchars($pembayaran['foto']) . '<br>';
+                                            $fotoPath = 'assets/foto/tagihan/' . htmlspecialchars($pembayaran['foto']);
+                                            echo '<a href="' . $fotoPath . '" target="_blank">Lihat Foto</a><br>';
                                         }
                                         ?>
+
                                     </td>
                                     <td><?php echo htmlspecialchars($item['jatuh_tempo']); ?></td>
                                     <td><?php echo htmlspecialchars($tgl_lunas); ?></td>
-                                    <td><?php echo htmlspecialchars($sisa); ?></td>
+                                    <td>Rp <?= number_format($sisa, 0, ',', '.') ?></td>
                                     <td>
                                         <button type="button" class="btn btn-success btn-add" data-toggle="modal" data-target="#terima"
                                             data-id="<?php echo htmlspecialchars($id_pembelian); ?>"
@@ -221,7 +223,7 @@ while ($row = $ambil->fetch_assoc()) {
                                 </div>
                                 <div>
                                     <label for="sisa" class="form-label">Yang harus dibayar</label>
-                                    <input type="text" class="form-control" name="sisa" id="sisa" value="<?php echo htmlspecialchars($sisa); ?>" readonly>
+                                    <input type="text" class="form-control" name="sisa" id="sisa" value="Rp <?= number_format($sisa, 0, ',', '.') ?>" readonly>
                                 </div>
                                 <div>
                                     <label for="nominal" class="form-label">Nominal</label>
