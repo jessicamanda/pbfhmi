@@ -1,6 +1,13 @@
 <?php
 session_start();
 
+if(isset($_GET['logout'])){
+  session_unset();
+  session_destroy();
+  header("Location: login-customer.php");
+  exit();
+
+}
 include('../koneksi.php');
 ?>
 <!DOCTYPE html>
