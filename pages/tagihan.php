@@ -209,14 +209,7 @@ while ($row = $ambil->fetch_assoc()) {
                                     <label for="nama_obat" class="form-label">Nama Obat</label>
                                     <input type="text" class="form-control" name="nama_obat" id="nama_obat" readonly>
                                 </div>
-                                <!-- <div>
-                                    <label for="jumlah" class="form-label">Jumlah Order</label>
-                                    <input type="text" class="form-control" name="jumlah" id="jumlah" readonly>
-                                </div>
-                                <div>
-                                    <label for="" class="form-label">Total Tagihan</label>
-                                    <input type="text" class="form-control" name="total" id="total" readonly>
-                                </div> -->
+
                                 <div>
                                     <label for="tgl_bayar" class="form-label">Tanggal Bayar</label>
                                     <input type="date" class="form-control" name="tgl_bayar" id="tgl_bayar" value="<?php echo date('Y-m-d'); ?>" required>

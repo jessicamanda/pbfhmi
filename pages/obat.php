@@ -8,6 +8,7 @@ $edit_id = "";
 $nama_obat = "";
 $mq = "";
 $margin = "";
+$deskripsi = "";
 $foto = "";
 
 if (isset($_GET['edit'])) {
@@ -18,6 +19,7 @@ if (isset($_GET['edit'])) {
         $nama_obat = $data['nama_obat'];
         $mq = $data['mq'];
         $margin = $data['margin'];
+        $deskripsi = $data['deskripsi'];
         $foto = $data['foto'];
     } else {
         echo "<script>alert('Data tidak ditemukan!'); document.location.href='index.php?hal=obat';</script>";
@@ -28,6 +30,7 @@ if (isset($_POST['save'])) {
     $nama_obat = htmlspecialchars($_POST['nama_obat']);
     $mq = htmlspecialchars($_POST['mq']);
     $margin = htmlspecialchars($_POST['margin']);
+    $deskripsi = htmlspecialchars($_POST['deskripsi']);
     $mode = $_POST['mode'];
 
 
@@ -56,16 +59,16 @@ if (isset($_POST['save'])) {
         move_uploaded_file($lokasi, $folder . '/' . $foto);
     }
 
-     if ($mode == "edit" && empty($foto)) {
+    if ($mode == "edit" && empty($foto)) {
         $foto = $_POST['existing_foto'];
     }
 
     if ($mode == "add") {
-        $con->query("INSERT INTO obat (nama_obat, mq, margin,foto) VALUES ('$nama_obat', '$mq', '$margin', '$foto')");
+        $con->query("INSERT INTO obat (nama_obat, mq, margin,foto, deskripsi) VALUES ('$nama_obat', '$mq', '$margin', '$foto', '$deskripsi')");
         echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=obat';</script>";
     } elseif ($mode == "edit") {
         $edit_id = $_POST['edit_id'];
-        $con->query("UPDATE obat SET nama_obat='$nama_obat', mq='$mq', margin='$margin', foto='$foto' WHERE id='$edit_id'");
+        $con->query("UPDATE obat SET nama_obat='$nama_obat', mq='$mq', margin='$margin', foto='$foto', deskripsi='$deskripsi' WHERE id='$edit_id'");
         echo "<script>alert('Data berhasil diupdate'); document.location.href='index.php?hal=obat';</script>";
     }
 }
@@ -110,6 +113,12 @@ if (isset($_GET['delete'])) {
                                 </div>
                             </div>
                             <div class="">
+                                <label for="deskripsi" class="form-label">deskripsi</label>
+                                <div class="input-group">
+                                <textarea class="form-control" rows="4" name="deskripsi" id="deskripsi"></textarea>
+                                </div>
+                            </div>
+                            <div class="">
                                 <label for="margin" class="form-label">Foto</label>
                                 <div class="input-group">
                                     <input type="file" class="form-control" name="foto" id="foto">
@@ -144,6 +153,7 @@ if (isset($_GET['delete'])) {
                                     <th>Nama Obat</th>
                                     <th>Minimum Quantity</th>
                                     <th>Margin</th>
+                                    <th>Dekripsi</th>
                                     <th>Foto</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -159,6 +169,7 @@ if (isset($_GET['delete'])) {
                                         <td><?php echo $pecah["nama_obat"]; ?></td>
                                         <td><?php echo $pecah["mq"]; ?></td>
                                         <td><?php echo $pecah["margin"]; ?></td>
+                                        <td><?php echo $pecah["deskripsi"]; ?></td>
                                         <td>
                                             <?php if (!empty($pecah["foto"])) : ?>
                                                 <img src="assets/foto/obat/<?= htmlspecialchars($pecah["foto"]); ?>" alt="Foto" width="50">

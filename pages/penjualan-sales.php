@@ -1,12 +1,18 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <?php
 if (isset($_POST['save'])) {
     $tgl = htmlspecialchars($_POST['tgl']);
     $no_nota = htmlspecialchars($_POST['no_nota']);
     $nama_pelanggan = htmlspecialchars($_POST['nama_pelanggan']);
+    $provinsi = htmlspecialchars($_POST['provinsi']);
+    $kota = htmlspecialchars($_POST['kota']);
+    $kecamatan = htmlspecialchars($_POST['kecamatan']);
+    $kelurahan = htmlspecialchars($_POST['kelurahan']);
+    $kode_pos = htmlspecialchars($_POST['kode_pos']);
     $alamat = htmlspecialchars($_POST['alamat']);
     $instansi = htmlspecialchars($_POST['instansi']);
     $status = 'Diproses';
@@ -19,14 +25,19 @@ if (isset($_POST['save'])) {
 
         $stok_query = $con->query("SELECT stok FROM stok WHERE nama_obat = '$nama_obat'");
         $stok_data = $stok_query->fetch_assoc();
-        
+
         if ($stok_data && $stok_data['stok'] < $jumlah) {
             echo "<script>alert('Stok tidak mencukupi untuk $nama_obat!'); window.location.href='index.php?hal=penjualan-sales';</script>";
             exit;
         }
     }
+    
+    $getLastUser = $con->query("SELECT * FROM user ORDER BY id DESC LIMIT 1")->fetch_assoc();
 
-    $con->query("INSERT INTO transaksi (tgl, no_nota, nama_pelanggan, instansi, nohp, alamat, total, status) VALUES ('$tgl', '$no_nota', '$nama_pelanggan', '$instansi', '$nohp', '$alamat', '$total', '$status')");
+    $user_id = $getLastUser['id']+1;
+
+    $con->query("INSERT INTO transaksi (tgl, no_nota, nama_pelanggan, user_id, instansi, nohp, alamat, total, status,provinsi, kota, kecamatan, kelurahan,kode_pos) VALUES ('$tgl', '$no_nota', '$nama_pelanggan', '$user_id', '$instansi', '$nohp', '$alamat', '$total', '$status', '$provinsi', '$kota', '$kecamatan', '$kelurahan','$kode_pos')");
+    $con->query("INSERT INTO user (id, username, nama_lengkap, password, role) VALUES ('$user_id', '$nama_pelanggan', '$nama_pelanggan', '$nohp', 'pelanggan')");
 
     foreach ($_SESSION['keranjang'] as $item) {
         $nama_obat = $item['nama_obat'];
@@ -195,10 +206,47 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <input type="text" name="nohp" class="form-control" id="nohp">
                         </div>
                     </div>
+                    <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <label for="basic-url" class="form-label">Provinsi</label>
+                                <select id="provinsi" required class="form-select">
+                                    <option hidden selected>Pilih Provinsi</option>
+                                </select>
+                                <input type="text" hidden id="provins" name="provinsi">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="basic-url" class="form-label">Kota</label>
+                                <select id="kota" required class="form-select">
+                                    <option hidden Selected>Pilih</option>
+                                </select>
+                                <input type="text" hidden id="kot" name="kota">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="basic-url" class="form-label">Kecamatan</label>
+                                <select id="kecamatan" required class="form-select">
+                                    <option hidden Selected>Pilih</option>
+                                </select>
+                                <input type="text" hidden id="kecamata" name="kecamatan">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="basic-url" class="form-label">Desa/Kelurahan</label>
+                                <select id="kelurahan" required class="form-select">
+                                    <option hidden Selected>Pilih</option>
+                                </select>
+                                <input type="text" hidden id="keluraha" name="kelurahan">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-group">
+                                    <label>Kode POS</label>
+                                    <input type="text" class="form-control" name="kode_pos" id="kode_pos" required>
+                                </div>
+                            </div>
+                        </div>
                     <div class="mb-4">
                         <label for="" class="form-label">Alamat Pelanggan</label>
                         <div class="input-group">
-                            <textarea class="form-control" rows="4" name="alamat" id="alamat"></textarea>
+                            <textarea type="text" style="min-height: 150px;" name="alamat" class="form-control border border-success" id="alamat"
+                                placeholder="Alamat Lengkap" value=""></textarea>
                         </div>
                     </div>
                 </div>
@@ -210,6 +258,186 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
 
 
 </div>
+
+<script>
+    var selectProvinsi = document.getElementById("provinsi");
+    // Lakukan permintaan HTTP untuk mendapatkan data propinsi dari API
+    fetch("https://kodepos-2d475.firebaseio.com/list_propinsi.json?print=pretty")
+        .then(response => response.json())
+        .then(data => {
+            // Data propinsi telah diterima, lakukan iterasi untuk membuat elemen option
+            for (var propinsiCode in data) {
+                if (data.hasOwnProperty(propinsiCode)) {
+                    var propinsiName = data[propinsiCode];
+
+                    // Membuat elemen option
+                    var optionElement = document.createElement("option");
+                    optionElement.value = propinsiCode; // Nilai option sesuai dengan kode propinsi
+                    optionElement.text = propinsiName; // Teks yang akan ditampilkan pada option
+
+                    // Menambahkan elemen option ke dalam elemen select
+                    selectProvinsi.appendChild(optionElement);
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching propinsi data:", error);
+        });
+    // Mendapatkan referensi ke elemen select
+    var selectProvinsi = document.getElementById("provinsi");
+    var selectKota = document.getElementById("kota");
+    var selectKecamatan = document.getElementById("kecamatan");
+    var selectKelurahan = document.getElementById("kelurahan");
+    var inputProvinsi = document.getElementById("provins");
+    var inputKota = document.getElementById("kot");
+    var inputKecamatan = document.getElementById("kecamata");
+    var inputKelurahan = document.getElementById("keluraha");
+    var inputKodePos = document.getElementById("kode_pos");
+
+    // Function untuk membuat elemen option
+    function createOption(value, text) {
+        var optionElement = document.createElement("option");
+        optionElement.value = value;
+        optionElement.text = text;
+        return optionElement;
+    }
+
+    // Function untuk mengambil data kota dari API berdasarkan provinsi yang dipilih
+    function updateKotaList(provinsiCode) {
+        // Lakukan permintaan HTTP untuk mendapatkan data kota dari API
+        fetch(`https://kodepos-2d475.firebaseio.com/list_kotakab/${provinsiCode}.json?print=pretty`)
+            .then(response => response.json())
+            .then(data => {
+                // Hapus opsi yang ada sebelumnya
+                selectKota.innerHTML = "";
+
+                // Tambahkan opsi baru berdasarkan data kota yang diterima
+                for (var kotaCode in data) {
+                    if (data.hasOwnProperty(kotaCode)) {
+                        var kotaName = data[kotaCode];
+                        selectKota.appendChild(createOption(kotaCode, kotaName));
+                    }
+                }
+
+                // Panggil fungsi untuk memperbarui kecamatan
+                updateKecamatanList();
+            })
+            .catch(error => {
+                console.error("Error fetching kota data:", error);
+            });
+    }
+
+    // Function untuk mengambil data kecamatan dan kelurahan dari API berdasarkan kota yang dipilih
+    // Function untuk mengambil data kecamatan dari API berdasarkan kota yang dipilih
+    function updateKecamatanList() {
+        // Mendapatkan nilai kota yang dipilih
+        var selectedKota = selectKota.value;
+
+        // Lakukan permintaan HTTP untuk mendapatkan data kecamatan dan kelurahan dari API
+        fetch(`https://kodepos-2d475.firebaseio.com/kota_kab/${selectedKota}.json?print=pretty`)
+            .then(response => response.json())
+            .then(data => {
+                // Hapus opsi yang ada sebelumnya
+                selectKecamatan.innerHTML = "";
+                selectKelurahan.innerHTML = "";
+
+                // Buat objek untuk menyimpan kecamatan yang unik
+                var kecamatanSet = new Set();
+
+                // Tambahkan kecamatan ke objek set
+                data.forEach(entry => {
+                    kecamatanSet.add(entry.kecamatan);
+                });
+
+                // Tambahkan opsi baru ke dalam elemen select untuk kecamatan
+                kecamatanSet.forEach(kecamatan => {
+                    selectKecamatan.appendChild(createOption(kecamatan, kecamatan));
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching kecamatan data:", error);
+            });
+    }
+    // Function untuk mengambil data kelurahan dari API berdasarkan kecamatan yang dipilih
+    function updateKelurahanList() {
+        // Mendapatkan nilai kecamatan yang dipilih
+        var selectedKecamatan = selectKecamatan.value;
+
+        // Mendapatkan nilai kota yang dipilih
+        var selectedKota = selectKota.value;
+
+        // Lakukan permintaan HTTP untuk mendapatkan data kelurahan dari API
+        fetch(`https://kodepos-2d475.firebaseio.com/kota_kab/${selectedKota}.json?print=pretty`)
+            .then(response => response.json())
+            .then(data => {
+                // Hapus opsi yang ada sebelumnya
+                selectKelurahan.innerHTML = "";
+
+                // Filter data berdasarkan kecamatan yang dipilih
+                var filteredData = data.filter(entry => entry.kecamatan === selectedKecamatan);
+
+                // Tambahkan opsi baru ke dalam elemen select untuk kelurahan
+                filteredData.forEach(entry => {
+                    var option = createOption(entry.kelurahan, entry.kelurahan);
+                    selectKelurahan.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching kelurahan data:", error);
+            });
+    }
+
+    // Menambahkan event listener untuk elemen provinsi
+    selectProvinsi.addEventListener("change", function() {
+        // Mendapatkan nilai provinsi yang dipilih
+        var selectedProvinsi = selectProvinsi.value;
+        var selectedProvinsii = selectProvinsi.options[selectProvinsi.selectedIndex].text;
+        inputProvinsi.value = selectedProvinsii;
+        // Memanggil fungsi untuk memperbarui daftar kota berdasarkan provinsi yang dipilih
+        updateKotaList(selectedProvinsi);
+    });
+
+    // Menambahkan event listener untuk elemen kota
+    selectKota.addEventListener("change", function() {
+        // Memanggil fungsi untuk memperbarui daftar kecamatan dan kelurahan berdasarkan kota yang dipilih
+        var selectedKotaa = selectKota.options[selectKota.selectedIndex].text;
+        inputKota.value = selectedKotaa;
+        updateKecamatanList();
+    });
+    // Menambahkan event listener untuk elemen kecamatan
+    selectKecamatan.addEventListener("change", function() {
+        // Memanggil fungsi untuk memperbarui daftar kelurahan berdasarkan kecamatan yang dipilih
+        var selectedKecamatann = selectKecamatan.options[selectKecamatan.selectedIndex].text;
+        inputKecamatan.value = selectedKecamatann;
+        updateKelurahanList();
+    });
+    selectKelurahan.addEventListener("change", function() {
+        // Mendapatkan nilai kelurahan yang dipilih
+        var selectedKelurahan = selectKelurahan.value;
+
+        // Mendapatkan nilai kota yang dipilih
+        var selectedKota = selectKota.value;
+        var selectedKelurahann = selectKelurahan.options[selectKelurahan.selectedIndex].text;
+        inputKelurahan.value = selectedKelurahann;
+        // Lakukan permintaan HTTP untuk mendapatkan kode pos berdasarkan kelurahan yang dipilih
+        fetch(`https://kodepos-2d475.firebaseio.com/kota_kab/${selectedKota}.json?print=pretty`)
+            .then(response => response.json())
+            .then(data => {
+                // Temukan data yang sesuai dengan kelurahan yang dipilih
+                var kodePosData = data.find(entry => entry.kelurahan === selectedKelurahan);
+
+                // Tampilkan kode pos di elemen input kode_pos
+                if (kodePosData) {
+                    inputKodePos.value = kodePosData.kodepos;
+                } else {
+                    console.error("Kode pos not found for selected kelurahan.");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching kode pos data:", error);
+            });
+    });
+</script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
