@@ -89,6 +89,9 @@
 <br><hr><br>
 <section class="ca-1">
     <h3 class="mb-4">Produk Terbaru</h3>
+    <span>
+      <?= print_r($_SESSION['admin'])?>
+    </span>
     <div class="row">
         <div class="owl-carousel owl-theme">
             <?php
@@ -135,7 +138,7 @@
     </div>
 </section>
 <br><hr><br>
-<div class="card shadow p-3 text-light" style="background: #0F5220; background: linear-gradient(90deg, rgba(12,223,103,1) 0%, rgba(15, 82, 32) 100%);">
+<!-- <div class="card shadow p-3 text-light" style="background: #0F5220; background: linear-gradient(90deg, rgba(12,223,103,1) 0%, rgba(15, 82, 32) 100%);">
     <center>
     <b>Sistem Informasi Manajemen Perdagangan Besar Farmasi Husada Mulia Indonesia</b>
     </center>
@@ -161,5 +164,55 @@
             </center>
         </div>
     </div>
-</div>
-<br><hr><br><br>
+</div> -->
+
+<div style="background-color: #08592F">
+		<footer class="row col-md" style="color: #fff; width: 100%; font-size:13px;">
+			<div class="col-md-4 mx-3 my-3">
+				<img src="20230831_110803.png" style="max-width: 120px;" class="mb-3" alt="" />
+				<!-- <p>Lokal berkelas</p> -->
+				<p><b>Layanan Pengaduan Konsumen</b></p>
+				<p>Direktorat Jenderal Perlindungan Konsumen dan Tertib Niaga Kementerian Perdagangan RI</p>
+				<p>
+					Kontak WhatsApp: +62 853 1111 1010
+				</p>
+			</div>
+
+			<div class="col-md-4 mx-3 my-3 d-flex flex-column gap-2">
+				<p><strong>Hubungi kami</strong></p>
+				<div>
+					<h6>Alamat KHM Wonorejo</h6>
+					<p class="m-1">Jl. Nasional 25, Krajan, Wonorejo, Kec. Kedungjajang, Kabupaten Lumajang, Jawa Timur 67358</p>
+					<a href="https://wa.me/6282233880001" class="text-decoration-none text-white" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i> CS +62 822 3388 0001</a>
+				</div>
+				<div>
+					<h6>Alamat KHM Klakah</h6>
+					<p class="m-1">Jl. Raya Lumajang - Probolinggo, Kec. Klakah, Kabupaten Lumajang, Jawa Timur 67356</p>
+					<a href="https://wa.me/6281355550275" class="text-decoration-none text-white" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i> CS +62 813 5555 0275</a>
+				</div>
+				<div>
+					<h6>Alamat KHM Tunjung</h6>
+					<p class="m-1">Jl. Tunjung, Krajan Dua, Tunjung, Kec. Randuagung, Kabupaten Lumajang, Jawa Timur 67354</p>
+					<a href="https://wa.me/6281234571010" class="text-decoration-none text-white" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i> CS +62 812 3457 1010</a>
+				</div>
+			</div>
+
+			<div class="col-3 mx-3 my-3 d-flex flex-column">
+				<p><strong>Ikuti kami</strong></p>
+				<div class="d-flex gap-2">
+					<a href="https://www.instagram.com/husadamuliaofficial/" class="text-decoration-none text-white" target="_blank">
+						<h6><i class="bi bi-instagram"></i></h6>
+					</a>
+					<a href="https://www.facebook.com/profile.php?id=61553748481575" class="text-decoration-none text-white" target="_blank">
+						<h6><i class="bi bi-facebook"></i></h6>
+					</a>
+					<a href="https://www.tiktok.com/@husada_mulia" class="text-decoration-none text-white" target="_blank">
+						<h6><i class="bi bi-tiktok"></i></h6>
+					</a>
+					<a href="https://www.youtube.com/@sahabatmuliaofficial1463" class="text-decoration-none text-white" target="_blank">
+						<h6><i class="bi bi-youtube"></i></h6>
+					</a>
+				</div>
+			</div>
+		</footer>
+	</div>

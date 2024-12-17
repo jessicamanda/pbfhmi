@@ -51,7 +51,7 @@
                       $username =$_POST['username'];
                       $password =$_POST['password'];
                   
-                      $sql = "SELECT * FROM transaksi WHERE nama_pelanggan = '$username'";
+                      $sql = "SELECT * FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND provinsi != '' LIMIT 1";
                       $result = $con->query($sql);
                   
                       if ($result->num_rows > 0) {
