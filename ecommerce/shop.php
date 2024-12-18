@@ -1,11 +1,11 @@
 <?php
-if (isset($_SESSION['kosmetik'])) {
-    $id_pasien = $_SESSION['kosmetik']['idpasien'];
-    // $products = $koneksi->query("SELECT cart_kosmetik.*,produk_kosmetik.* FROM cart_kosmetik join produk_kosmetik on cart_kosmetik.produk_id = produk_kosmetik.id_produk  WHERE cart_kosmetik.user_id = '$id_pasien'");
+if (isset($_SESSION['admin'])) {
+    $id_user = $_SESSION['admin']['id'];
+    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_user ORDER BY obat.created_at DESC;");
 } else {
-    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-        stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LIMIT 0");
+    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.jumlah, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok, stok.id AS stok_id FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY  obat.created_at DESC LIMIT 0;");
 }
+
 ?>
 <div class="container">
     <style>
@@ -46,13 +46,13 @@ if (isset($_SESSION['kosmetik'])) {
         <div class="row">
             <div class="col-2 mx-3" id="hide">
                 <h3>
-                    <a class="nav-link" style="float: left;" href="index.php?halaman=cart"><b><i class="bi bi-cart4"></i></b></a>
+                    <a class="nav-link" style="float: left;" href="index.php?halaman=keranjang"><b><i class="bi bi-cart4"></i></b></a>
                     <sup style="background-color: green;  font-size:12px; color: white; padding: 2px; border-radius: 5px;"><?= $products->num_rows ?></sup>
                 </h3>
             </div>
             <div class="col-2" id="hide">
                 <h3>
-                    <a class="nav-link" href="index.php?halaman=history"><b><i class="bi bi-clock-history"></i></b> </a>
+                    <a class="nav-link" href="index.php?halaman=riwayat"><b><i class="bi bi-clock-history"></i></b> </a>
                 </h3>
             </div>
         </div>
@@ -82,8 +82,8 @@ if (isset($_SESSION['kosmetik'])) {
                 </div>
                 <div class="col-md-2" id="hide2">
                     <h3>
-                        <a class="nav-link me-3" style="float: left;" href="index.php?halaman=cart"><b><i class="bi bi-cart4"></i><sup style="background-color: green; color: white; padding: 1px; border-radius: 5px;"><?= $products->num_rows ?></sup></b> </a>
-                        <a class="nav-link" href="index.php?halaman=history"><b><i class="bi bi-clock-history"></i></b> </a>
+                        <a class="nav-link me-3" style="float: left;" href="index.php?halaman=keranjang"><b><i class="bi bi-cart4"></i><sup style="background-color: green; color: white; padding: 1px; border-radius: 5px;"><?= $products->num_rows ?></sup></b> </a>
+                        <a class="nav-link" href="index.php?halaman=riwayat"><b><i class="bi bi-clock-history"></i></b> </a>
                     </h3>
                 </div>
             </div>
@@ -93,22 +93,18 @@ if (isset($_SESSION['kosmetik'])) {
 
                     //   Pagination
                     if (isset($_POST['keyword'])) {
-                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                                stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY id_obat DESC");
+                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY obat.id DESC");
                     } elseif (isset($_POST['filter'])) {
                         if ($_POST['fil'] == 'Tinggi') {
-                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                                stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat ORDER BY pembelian.harga DESC");
+                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru DESC");
                         } elseif ($_POST['fil'] == 'Rendah') {
-                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                                stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat ORDER BY pembelian.harga ASC");
+                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru ASC");
                         }
                     } else {
-                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                            stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat ORDER BY id_obat DESC");
+                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.id DESC");
                     }
                     // Parameters for pagination
-                    $limit = 1; // Number of entries to show in a page
+                    $limit = 10; // Number of entries to show in a page
                     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                     $start = ($page - 1) * $limit;
 
@@ -128,34 +124,55 @@ if (isset($_SESSION['kosmetik'])) {
                     // End Pagination
 
                     if (isset($_POST['keyword'])) {
-                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                                stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY id_obat DESC LIMIT $start, $limit;");
+                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY obat.id DESC LIMIT $start, $limit;");
                     } elseif (isset($_POST['filter'])) {
                         if ($_POST['fil'] == 'Tinggi') {
-                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                                stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat ORDER BY pembelian.harga DESC LIMIT $start, $limit;");
+                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru DESC LIMIT $start, $limit;");
                         } elseif ($_POST['fil'] == 'Rendah') {
-                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                                stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat ORDER BY pembelian.harga ASC LIMIT $start, $limit;");
+                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru ASC LIMIT $start, $limit;");
                         }
                     } else {
-                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.mq, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.jumlah, pembelian.ppn, pembelian.total, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                            stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat ORDER BY id_obat DESC LIMIT $start, $limit;");
+                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.id DESC LIMIT $start, $limit;");
                     }
 
                     foreach ($products as $product) {
                     ?>
                         <div class="col p-2">
                             <div class="card w-100 h-100">
-                                <a href="index.php?halaman=detail_produk&id_produk=<?= $product['id_obat'] ?>">
+                                <a href="index.php?halaman=detail_produk&id_obat=<?= $product['id_obat'] ?>">
 
                                     <img src="../assets/foto/obat/<?= $product['foto'] ?>" class="card-img-top" alt="<?= $product['foto']?>">
 
                                 </a>
                                 <div class="card-body p-2">
                                     <h6 class="card-title"><?= $product['nama_obat'] ?></h6>
-                                    <h5 class="card-text text-success">Rp <?= number_format($product['harga'], 0, '', '.') ?></h5>
-                                    <a href="index.php?halaman=shop&add=<?= $product['id_obat'] ?>" class="btn btn-success w-100">+ Keranjang</a>
+                                    <h5 class="card-text text-success">Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></h5>
+                                    <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addToCartModal<?= $product['id_obat'] ?>">+ Keranjang</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal fade" id="addToCartModal<?= $product['id_obat'] ?>" tabindex="-1" aria-labelledby="addToCartLabel<?= $product['id_obat'] ?>" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="addToCartLabel<?= $product['id_obat'] ?>">Tambah ke Keranjang</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form method="POST" action="index.php?halaman=shop&add=<?= $product['id_obat'] ?>">
+                                        <div class="modal-body">
+                                            <p>Produk: <strong><?= $product['nama_obat'] ?></strong></p>
+                                            <p>Harga: <strong>Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></strong></p>
+                                            <div class="mb-3">
+                                                <label for="quantity<?= $product['id_obat'] ?>" class="form-label">Jumlah</label>
+                                                <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min="1" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-success">Tambah ke Keranjang</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -163,41 +180,34 @@ if (isset($_SESSION['kosmetik'])) {
                 </div>
             </div>
 
+
+
+
             <?php
             if (isset($_GET['add'])) {
-                if (isset($_SESSION['kosmetik'])) {
-                    $getProd = $koneksi->query("SELECT * FROM produk_kosmetik WHERE id_produk = '" . htmlspecialchars($_GET['add']) . "'")->fetch_assoc();
-                    $user_id = $_SESSION['kosmetik']['idpasien'];
-                    $username = $_SESSION['kosmetik']['nama_lengkap'];
-                    $produk_id = $getProd['id_produk'];
-                    $produk = $getProd['nama_produk'];
-                    $harga = $getProd['harga'];
-                    $diskon = $getProd['diskon'];
-                    $jumlah = '1';
-                    $sub_harga = 1 * $getProd['harga'];
+                if (isset($_SESSION['admin']['nama_lengkap'])) {
+                    $getProd = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.id = '".htmlspecialchars($_GET['add'])."'")->fetch_assoc();
+                    $user_id = $_SESSION['admin']['id'];
+                    $nama_lengkap = $_SESSION['admin']['nama_lengkap'];
+                    $id_obat = $getProd['id_obat'];
+                    $nama_obat = $getProd['nama_obat'];
+                    $harga = $getProd['harga_terbaru'];
+                    $jumlah = isset($_POST['jumlah']) ? $_POST['jumlah'] : 1;
+                    $sub_harga = 1 * $getProd['harga_terbaru'];
 
-                    $koneksi->query("INSERT INTO cart_kosmetik (user_id, username, produk_id, produk, harga, diskon, jumlah, sub_harga) VALUES ('$user_id', '$username', '$produk_id', '$produk', '$harga', '$diskon', '$jumlah', '$sub_harga')");
+                    $con->query("INSERT INTO keranjang (user_id, nama_lengkap, id_obat, nama_obat, harga, jumlah, sub_harga) VALUES ('$user_id', '$nama_lengkap', '$id_obat', '$nama_obat', '$harga', '$jumlah', '$sub_harga')");
 
-                    if ($_GET['kategori'] == 'Konsultasi') {
-                        echo "
-                            <script>
-                                alert('Berhasil Menambahkan Produk Ke Keranjang, Tetapi Untuk Menggunakan Produk Ini, Silahkan Lakukan Konsultasi Terlebih Dahulu Kepada Dokter Kami !');
-                                document.location.href='chat.php';
-                            </script>
-                        ";
-                    } else {
                         echo "
                             <script>
                                 alert('Berhasil Menambahkan Produk Ke Keranjang');
                                 document.location.href='index.php?halaman=shop';
                             </script>
                         ";
-                    }
                 } else {
                     echo "
                             <script>
                                 alert('Lakukan Login Terlebih Dahulu Sebelum Melakukan Pembelian');
-                                document.location.href='login.php';
+                                document.location.href='login-customer.php';
                             </script>
                         ";
                 }

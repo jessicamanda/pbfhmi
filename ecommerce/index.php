@@ -132,9 +132,9 @@ include('../koneksi.php');
                         <li class="nav-item">
                             <a class="nav-link" href="?halaman=home">Home</a>
                         </li>
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link" href="?halaman=about_us">About Us</a>
-                        </li>
+                        </li> -->
                         <li class="nav-item">
                             <a class="nav-link" href="?halaman=shop">Shop</a>
                         </li>
@@ -190,6 +190,8 @@ include('../koneksi.php');
             if ($_GET['halaman'] == "home") {include('home.php');} 
             elseif ($_GET['halaman'] == "shop") {include('shop.php');}
             elseif ($_GET['halaman'] == "riwayat") {include('riwayat.php');}
+            elseif ($_GET['halaman'] == "detail_produk") {include('detail_produk.php');}
+            elseif ($_GET['halaman'] == "keranjang") {include('keranjang.php');}
         }
         ?>
     </div>
