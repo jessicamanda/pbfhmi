@@ -55,7 +55,7 @@ if (isset($_SESSION['admin']['nama_pelanggan'])) {
           <p>Harga: <strong>Rp <?= number_format($product['harga'], 0, '', '.') ?></strong></p>
           <div class="mb-3">
             <label for="quantity<?= $product['id_obat'] ?>" class="form-label">Jumlah</label>
-            <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min="1" required>
+            <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min="1" max=<?= $product['stok'] ?> required>
           </div>
         </div>
         <div class="modal-footer">

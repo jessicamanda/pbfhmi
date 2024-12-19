@@ -141,17 +141,18 @@ if (isset($_SESSION['admin'])) {
                             <div class="card w-100 h-100">
                                 <a href="index.php?halaman=detail_produk&id_obat=<?= $product['id_obat'] ?>">
 
-                                    <img src="../assets/foto/obat/<?= $product['foto'] ?>" class="card-img-top" alt="<?= $product['foto']?>">
+                                    <img src="../assets/foto/obat/<?= $product['foto'] ?>" class="card-img-top" alt="<?= $product['foto'] ?>">
 
                                 </a>
                                 <div class="card-body p-2">
                                     <h6 class="card-title"><?= $product['nama_obat'] ?></h6>
                                     <h5 class="card-text text-success">Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></h5>
+                                    <p class="mt-1 text-muted">Stok <?= $product['stok'] ?></p>
                                     <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addToCartModal<?= $product['id_obat'] ?>">+ Keranjang</button>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="modal fade" id="addToCartModal<?= $product['id_obat'] ?>" tabindex="-1" aria-labelledby="addToCartLabel<?= $product['id_obat'] ?>" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
@@ -165,7 +166,7 @@ if (isset($_SESSION['admin'])) {
                                             <p>Harga: <strong>Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></strong></p>
                                             <div class="mb-3">
                                                 <label for="quantity<?= $product['id_obat'] ?>" class="form-label">Jumlah</label>
-                                                <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min="1" required>
+                                                <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min=1 max=<?= $product['stok'] ?> required>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
@@ -180,13 +181,10 @@ if (isset($_SESSION['admin'])) {
                 </div>
             </div>
 
-
-
-
             <?php
             if (isset($_GET['add'])) {
                 if (isset($_SESSION['admin']['nama_lengkap'])) {
-                    $getProd = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.id = '".htmlspecialchars($_GET['add'])."'")->fetch_assoc();
+                    $getProd = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.id = '" . htmlspecialchars($_GET['add']) . "'")->fetch_assoc();
                     $user_id = $_SESSION['admin']['id'];
                     $nama_lengkap = $_SESSION['admin']['nama_lengkap'];
                     $id_obat = $getProd['id_obat'];
@@ -197,7 +195,7 @@ if (isset($_SESSION['admin'])) {
 
                     $con->query("INSERT INTO keranjang (user_id, nama_lengkap, id_obat, nama_obat, harga, jumlah, sub_harga) VALUES ('$user_id', '$nama_lengkap', '$id_obat', '$nama_obat', '$harga', '$jumlah', '$sub_harga')");
 
-                        echo "
+                    echo "
                             <script>
                                 alert('Berhasil Menambahkan Produk Ke Keranjang');
                                 document.location.href='index.php?halaman=shop';
