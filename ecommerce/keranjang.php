@@ -47,7 +47,7 @@
                 ?>
 
                 <?php foreach ($products as $index => $product): ?>
-                    <div class="card border border-success p-2" style="">
+                    <div class="card border border-success p-2" >
                         <div class="product">
                             <div class="product-content" style="  display: flex;">
                                 <a href="../assets/foto/obat/<?= $product['foto'] ?>" target="_blank">
@@ -62,7 +62,7 @@
                                         <?= number_format($product['harga'], 0, ',', '.') ?>,00 
                                     </p>
                                     <p class="mb-0"><?php echo $product['jumlah']; ?> Pcs</p>
-                                    <h6 id="price" style=""><b>Sub : Rp
+                                    <h6 id="price"><b>Sub : Rp
                                             <?php echo number_format($sub = $product['harga'] * $product['jumlah'] , 0, ',', '.') ?></b>
                                     </h6>
                                     <?php $grandTotal += $sub; ?>
@@ -170,7 +170,7 @@
 
 
             <div class="col-sm-4 p-4 d-flex flex-column gap-2">
-                <div class="card border border-success p-4" style="">
+                <div class="card border border-success p-4">
                     <div class="total d-flex gap-3 flex-column">
                         <h4>
                             <label for="" class="form-label">Silahkan Isi Data : </label>
