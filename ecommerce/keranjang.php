@@ -32,7 +32,7 @@
                 if (isset($_SESSION['admin'])) {
                     $id_pelanggan = $_SESSION['admin']['id'];
 
-                    $products = $con->query("SELECT obat.*, pembelian.*, stok.*, keranjang.* FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = '$id_pelanggan'");
+                    $products = $con->query("SELECT obat.*, pembelian.*, stok.*, keranjang.* FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = '$id_pelanggan'");
 
                     // print_r($products);
 
@@ -180,6 +180,11 @@
                                 <label for="" class="form-label">Nama Lengkap Tujuan :</label>
                                 <input type="text" class="form-control border border-success" name="nama_lengkap"
                                     placeholder="Nama Lengkap" value="<?= $_SESSION['admin']['nama_lengkap'] ?>">
+                            </div>
+                            <div class="mb-2">
+                                <label for="" class="form-label">Instansi :</label>
+                                <input type="text" class="form-control border border-success" name="instansi"
+                                    placeholder="Instansi Anda" value="<?= $_SESSION['admin']['instansi'] ?>">
                             </div>
                             <div class="mb-2">
                                 <label for="" class="form-label">Alamat Lengkap Tujuan <i class="bi bi-pencil-square" data-bs-toggle="modal" data-bs-target="#dataDiri"></i> :</label>
@@ -436,10 +441,10 @@
                         </script>
                         <?php
                         if (isset($_POST['co'])) {
-                            $getCart = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.tgl = (SELECT MAX(p2.tgl) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_pelanggan ");
+                            $getCart = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_pelanggan ");
                             $code_nota = date('YmdHis') . $_SESSION['admin']['id'];
                             $user_id = $_SESSION['admin']['id'];
-                            $instansi = $_SESSION['admin']['instansi'];
+                            $instansi = htmlspecialchars($_POST['instansi']);
 
                             $alamat_lengkap = $_POST['alamat_lengkap'];
                                 preg_match(
@@ -484,8 +489,9 @@
                             $kode_pos = htmlspecialchars($_POST["kode_pos"]);
                             $alamat = htmlspecialchars($_POST["alamat"]);
 
-                            $con->query("UPDATE transaksi SET provinsi='$provinsi', kota='$kota', kecamatan='$kecamatan', kelurahan='$kelurahan', kode_pos='$kode_pos', alamat='$alamat' WHERE user_id = '" . $_SESSION['admin']['id'] . "'");
-                            $getNewPasien = $con->query("SELECT * FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '" . $_SESSION['admin']['username'] . "' AND provinsi != '' LIMIT 1 ")->fetch_assoc();
+                            $con->query("UPDATE user SET provinsi='$provinsi', kota='$kota', kecamatan='$kecamatan', kelurahan='$kelurahan', kode_pos='$kode_pos', alamat='$alamat' WHERE id = '" . $_SESSION['admin']['id'] . "'");
+                            // $getNewPasien = $con->query("SELECT * FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '" . $_SESSION['admin']['username'] . "' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;")->fetch_assoc();
+                            $getNewPasien = $con->query("SELECT user.id, user.nama_lengkap, user.username, user.password, user.nohp, user.provinsi, user.kota, user.kecamatan, user.kelurahan, user.kode_pos, user.alamat, user.role  FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '" . $_SESSION['admin']['username'] . "' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;")->fetch_assoc();
                             $_SESSION['admin'] = '';
 
                             $_SESSION['admin'] = $getNewPasien;

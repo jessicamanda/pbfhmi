@@ -150,7 +150,7 @@ include('../koneksi.php');
                                 style="border-radius: 12px"
                                 href="./login-customer.php">Login / Register</a>
                         </li> -->
-                        <?php if (isset($_SESSION['admin']['nama_pelanggan'])): ?>
+                        <?php if (isset($_SESSION['admin']['nama_lengkap'])): ?>
                             <li class="nav-item">
                                 <a class="nav-link" href="?halaman=riwayat">Riwayat</a>
                             </li>

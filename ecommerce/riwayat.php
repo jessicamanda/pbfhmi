@@ -4,7 +4,7 @@
 <?php include "../koneksi.php"; ?>
 
 <?php
-$nama_lengkap = $_SESSION['admin']['nama_pelanggan'];
+$nama_lengkap = $_SESSION['admin']['nama_lengkap'];
 $nama_lengkap = mysqli_real_escape_string($con, $nama_lengkap);
 
 $transaksi_produk = $con->query("SELECT transaksi.id_penjualan, transaksi.no_nota,transaksi.instansi, transaksi.status, transaksi.tgl, 

@@ -29,7 +29,7 @@
       <div class="page-header min-vh-100">
         <div class="container">
           <center>
-            <div class="card" style="max-width: 360px;">
+            <div class="card shadow-lg" style="max-width: 360px;">
               <div class="card-header pb-0 text-start">
               <p class="mb-0">Welcome to,</p>
                 <h4 class="font-weight-bolder" style="color: #0F5220;"><?= $appname?> App</h4>
@@ -45,18 +45,23 @@
                   <div class="text-center">
                     <button type="submit" name="login" class="btn btn-lg btn-lg w-100 mt-4 mb-0 text-white" style="background-color: #0F5220;">Login</button>
                   </div>
+                  <div class="text-center">
+                    <p>
+                      Belum punya akun? <a href="./register-customer.php">Register</a>
+                    </p>
                 </form>
                 <?php 
                   if (isset($_POST['login'])) {
                       $username =$_POST['username'];
                       $password =$_POST['password'];
                   
-                      $sql = "SELECT * FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND provinsi != '' LIMIT 1";
+                      // $sql = "SELECT * FROM user INNER JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;";
+                      $sql = "SELECT user.id, user.nama_lengkap, user.username, user.password, user.nohp, user.provinsi, user.kota, user.kecamatan, user.kelurahan, user.kode_pos, user.alamat, user.role, transaksi.instansi  FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;";
                       $result = $con->query($sql);
                   
                       if ($result->num_rows > 0) {
                           $row = $result->fetch_assoc();
-                          if ($password == $row['nohp']) {
+                          if ($password == $row['password']) {
                               $_SESSION['username'] = $row['username'];
                               $_SESSION['admin'] = $row;
                               header("Location: ./index.php"); // Redirect to dashboard or any other page

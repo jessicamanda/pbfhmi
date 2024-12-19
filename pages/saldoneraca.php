@@ -64,7 +64,7 @@ if (isset($_POST['filter'])) {
                                     $urlPage = "index.php?hal=saldoneraca&filter&date=$tanggal";
 
                                     // Pagination parameters
-                                    $limit = 1; // Number of entries per page
+                                    $limit = 100; // Number of entries per page
                                     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                                     $start = ($page - 1) * $limit;
 

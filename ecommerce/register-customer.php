@@ -29,15 +29,18 @@
       <div class="page-header min-vh-100">
         <div class="container">
           <center>
-            <div class="card" style="max-width: 360px;">
+            <div class="card shadow-lg" style="max-width: 360px;">
               <div class="card-header pb-0 text-start">
                 <p class="mb-0">Welcome to,</p>
                 <h4 class="font-weight-bolder" style="color: #0F5220;"><?= $appname ?> App</h4>
               </div>
-              <div class="card-body">
+              <div class="card-body ">
                 <form method="post">
                   <div class="mb-3">
                     <input type="text" name="nama_lengkap" class="form-control form-control-lg" placeholder="Isi nama lengkap Anda" aria-label="nama_lengkap">
+                  </div>
+                  <div class="mb-3">
+                    <input type="number" name="nohp" class="form-control form-control-lg" placeholder="No Hp" aria-label="nohp">
                   </div>
                   <div class="mb-3">
                     <input type="text" name="username" class="form-control form-control-lg" placeholder="Username" aria-label="Username">
@@ -49,16 +52,19 @@
                     <button type="submit" name="register" class="btn btn-lg btn-lg w-100 mt-4 mb-0 text-white" style="background-color: #0F5220;">Register</button>
                   </div>
                   <div class="text-center">
-                    <button class="btn btn-lg btn-lg w-100 mt-2 mb-0 text-white" style="background-color: #0F5220;"><a style="color: white;" href="./login-customer.php">Login</a></button>
+                    <p>
+                      Sudah punya akun? <a href="./login-customer.php">Login</a>
+                    </p>
                   </div>
                 </form>
                 <?php
                 if (isset($_POST['register'])) {
                   $nama_lengkap = htmlspecialchars($_POST['nama_lengkap']);
+                  $nohp = htmlspecialchars($_POST['nohp']);
                   $username = htmlspecialchars($_POST['username']);
                   $password = htmlspecialchars($_POST['password']);
 
-                  $con->query("INSERT INTO user (nama_lengkap, username, password) VALUES ('$nama_lengkap', '$username','$password')");
+                  $con->query("INSERT INTO user (nama_lengkap, nohp, username, password, role) VALUES ('$nama_lengkap','$nohp', '$username','$password', 'pelanggan')");
                   echo "<script>alert('User berhasil disimpan'); document.location.href='./login-customer.php';</script>";
                 }
                 ?>

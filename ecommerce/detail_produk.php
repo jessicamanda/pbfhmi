@@ -1,7 +1,7 @@
 <?php
 
 $id = htmlspecialchars($_GET['id_obat']);
-if (isset($_SESSION['admin']['nama_pelanggan'])) {
+if (isset($_SESSION['admin']['nama_lengkap'])) {
   $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, obat.deskripsi, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
                             stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat WHERE obat.id = '" . htmlspecialchars($_GET['id_obat']) . "'");
   $product = $products->fetch_assoc();
