@@ -7,34 +7,53 @@
 $nama_lengkap = $_SESSION['admin']['nama_pelanggan'];
 $nama_lengkap = mysqli_real_escape_string($con, $nama_lengkap);
 
-$ambil = $con->query("SELECT 
-    transaksi.id_penjualan, transaksi.no_nota,transaksi.instansi, transaksi.status, transaksi.tgl, transaksi.nama_pelanggan, transaksi.alamat, transaksi.nohp, 
-    transaksi.total, transaksi_produk.nama_obat, transaksi_produk.jumlah, transaksi_produk.sub_total FROM transaksi
-    LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota WHERE nama_pelanggan = '$nama_lengkap'
-    ");
+$transaksi_produk = $con->query("SELECT transaksi.id_penjualan, transaksi.no_nota,transaksi.instansi, transaksi.status, transaksi.tgl, 
+    transaksi.nama_pelanggan, transaksi.alamat, transaksi.nohp, transaksi.total,transaksi_produk.nama_obat,
+    transaksi_produk.jumlah,transaksi_produk.sub_total FROM transaksi LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota
+    WHERE transaksi.nama_pelanggan = '$nama_lengkap'");
 
-$data = [];
-while ($row = $ambil->fetch_assoc()) {
+$transaksi_pembayaran = $con->query("SELECT transaksi.id_penjualan, transaksi_pembayaran.tgl_bayar, transaksi_pembayaran.nominal, 
+        transaksi_pembayaran.foto FROM transaksi LEFT JOIN transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan
+    WHERE transaksi.nama_pelanggan = '$nama_lengkap'");
+
+
+$data_transaksi = [];
+while ($row = $transaksi_produk->fetch_assoc()) {
     $id_penjualan = $row['id_penjualan'];
-    if (!isset($data[$id_penjualan])) {
-        $data[$id_penjualan] = [
-            'tgl' => $row['tgl'],
+    if (!isset($data_transaksi[$id_penjualan])) {
+        $data_transaksi[$id_penjualan] = [
+            'id_penjualan' => $row['id_penjualan'],
             'no_nota' => $row['no_nota'],
-            'nama_pelanggan' => $row['nama_pelanggan'],
-            'nohp' => $row['nohp'],
-            'alamat' => $row['alamat'],
             'instansi' => $row['instansi'],
             'status' => $row['status'],
+            'tgl' => $row['tgl'],
+            'nama_pelanggan' => $row['nama_pelanggan'],
+            'alamat' => $row['alamat'],
+            'nohp' => $row['nohp'],
             'total' => $row['total'],
-            'transaksi_produk' => [],
+            'produk' => [],
+            'pembayaran' => []
         ];
     }
-    $data[$id_penjualan]['transaksi_produk'][] = [
+    $data_transaksi[$id_penjualan]['produk'][] = [
         'nama_obat' => $row['nama_obat'],
         'jumlah' => $row['jumlah'],
-        'sub_total' => $row['sub_total'],
+        'sub_total' => $row['sub_total']
     ];
 }
+
+while ($row = $transaksi_pembayaran->fetch_assoc()) {
+    $id_penjualan = $row['id_penjualan'];
+    if (isset($data_transaksi[$id_penjualan])) {
+        $data_transaksi[$id_penjualan]['pembayaran'][] = [
+            'tgl_bayar' => $row['tgl_bayar'],
+            'nominal' => $row['nominal'],
+            'foto' => $row['foto']
+        ];
+    }
+}
+
+
 
 ?>
 
@@ -49,60 +68,172 @@ while ($row = $ambil->fetch_assoc()) {
                     <table id="myTable" class="table display">
                         <thead>
                             <tr>
-                                <th rowspan="2">No</th>
                                 <th rowspan="2">Tanggal</th>
                                 <th rowspan="2">No Nota</th>
                                 <th rowspan="2">Instansi</th>
                                 <th rowspan="2">Alamat</th>
                                 <th colspan="3" style="text-align: center;">Produk</th>
                                 <th rowspan="2">Total</th>
+                                <th rowspan="2">Sisa Yang Harus Dibayar</th>
+                                <th rowspan="2">Status</th>
+                                <th colspan="3" style="text-align: center;">Pembayaran</th>
+                                <th rowspan="2">Aksi</th>
                             </tr>
                             <tr>
                                 <th>Nama Obat</th>
                                 <th>Jumlah</th>
                                 <th>Sub Total</th>
+                                <th>Tgl Bayar</th>
+                                <th>Nominal Bayar</th>
+                                <th>Foto Bukti</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            $no = 1;
-                            $nomer = 1;
-                            foreach ($data as $id_penjualan => $pecah) {
-                            ?>
-                                <tr>
-                                    <td><?php echo $no++; ?></td>
-                                    <td><?php echo $pecah["tgl"]; ?></td>
-                                    <td><?php echo $pecah["no_nota"]; ?></td>
-                                    <td><?php echo $pecah['instansi'] ?></td>
-                                    <td><?php echo $pecah["alamat"]; ?></td>
+                            <?php foreach ($data_transaksi as $transaksi):
+                                $sisa = $transaksi['total'];
+                                if (!empty($transaksi['pembayaran'])) {
+                                    foreach ($transaksi['pembayaran'] as $terima) {
+                                        $sisa -= $terima['nominal'];
+                                    }
+                                }
 
+                                if ($sisa == 0) {
+                                    $status = 'Lunas';
+                                } else {
+                                    $status = 'Belum Lunas';
+                                } ?>
+                                <tr>
+                                    <td><?= $transaksi['tgl'] ?></td>
+                                    <td><?= $transaksi['no_nota'] ?></td>
+                                    <td><?= $transaksi['instansi'] ?></td>
+                                    <td><?= $transaksi['alamat'] ?></td>
                                     <td>
-                                        <?php
-                                        foreach ($pecah['transaksi_produk'] as $transaksi_produk) {
-                                            echo htmlspecialchars($transaksi_produk['nama_obat']) . '<br>';
-                                        }
-                                        ?>
+                                        <?php foreach ($transaksi['produk'] as $produk): ?>
+                                            <?= $produk['nama_obat'] ?><br>
+                                        <?php endforeach; ?>
                                     </td>
                                     <td>
-                                        <?php
-                                        foreach ($pecah['transaksi_produk'] as $transaksi_produk) {
-                                            echo htmlspecialchars($transaksi_produk['jumlah']) . '<br>';
-                                        }
-                                        ?>
+                                        <?php foreach ($transaksi['produk'] as $produk): ?>
+                                            <?= $produk['jumlah'] ?><br>
+                                        <?php endforeach; ?>
                                     </td>
                                     <td>
-                                        <?php
-                                        foreach ($pecah['transaksi_produk'] as $transaksi_produk) {
-                                            echo 'Rp ' . number_format($transaksi_produk['sub_total'], 0, '', '.') . '<br>';
-                                        }
-                                        ?> </td>
-                                    <td><b>Rp <?= number_format($pecah["total"], 0, '', '.') ?></b></td>
+                                        <?php foreach ($transaksi['produk'] as $produk): ?>
+                                            Rp <?= number_format($produk['sub_total'], 0, '', '.') ?><br>
+                                        <?php endforeach; ?>
+                                    </td>
+                                    <td><b>Rp <?= number_format($transaksi['total'], 0, '', '.') ?></b></td>
+                                    <td style="color: red;"><b>Rp <?= number_format($sisa, 0, '', '.') ?></b></td>
+                                    <td><?= $transaksi['status'] ?></td>
+                                    <td>
+                                        <?php foreach ($transaksi['pembayaran'] as $pembayaran): ?>
+                                            <?= $pembayaran['tgl_bayar'] ?><br>
+                                        <?php endforeach; ?>
+                                    </td>
+                                    <td>
+                                        <?php foreach ($transaksi['pembayaran'] as $pembayaran): ?>
+                                            Rp <?= number_format($pembayaran['nominal'], 0, '', '.') ?><br>
+                                        <?php endforeach; ?>
+                                    </td>
+                                    <td>
+                                        <?php foreach ($transaksi['pembayaran'] as $pembayaran): ?>
+                                            <a href="assets/foto/tagihan/<?= $pembayaran['foto'] ?>" target="_blank">Lihat Foto</a><br>
+                                        <?php endforeach; ?>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-success btn-add"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#terima"
+                                            data-id="<?= $id_penjualan ?>"
+                                            data-tgl="<?= $transaksi['tgl'] ?>"
+                                            data-total="<?= $transaksi['total'] ?>">
+                                            Bayar
+                                        </button>
+                                    </td>
                                 </tr>
-                            <?php } ?>
+                            <?php endforeach; ?>
                         </tbody>
+
                     </table>
                 </div>
             </div>
+            <div class="modal fade" id="terima" role="dialog" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Bayar</h5>
+                        </div>
+                        <form action="" method="post" id="terima_form" enctype="multipart/form-data">
+                            <div class="modal-body">
+                                <input type="hidden" class="form-control" name="id" id="id_penjualan" readonly>
+                                <div>
+                                    <label for="tgl" class="form-label">Tanggal Order</label>
+                                    <input type="date" class="form-control" name="tgl" id="tgl" readonly>
+                                </div>
+                                <div>
+                                    <label for="tgl_bayar" class="form-label">Tanggal Bayar</label>
+                                    <input type="date" class="form-control" name="tgl_bayar" id="tgl_bayar" required>
+                                </div>
+                                <div>
+                                    <label for="total" class="form-label">Yang harus dibayar</label>
+                                    <input type="text" class="form-control" name="total" id="total" readonly>
+                                </div>
+
+                                <div>
+                                    <label for="nominal" class="form-label">Nominal</label>
+                                    <input type="text" class="form-control" name="nominal" id="nominal" required>
+                                </div>
+
+                                <div class="">
+                                    <label for="margin" class="form-label">Foto Bukti</label>
+                                    <div class="input-group">
+                                        <input type="file" class="form-control" name="foto" id="foto">
+                                        <input type="hidden" name="existing_foto" value="<?php echo $foto; ?>">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary" name="save">Simpan Data</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php
+            if (isset($_POST['save'])) {
+                $id_penjualan = $_POST['id'];
+                $tgl_bayar = $_POST['tgl_bayar'];
+                $nominal = $_POST['nominal'];
+
+                $folder = "assets/foto/tagihan";
+                if (!is_dir($folder)) {
+                    mkdir($folder, 0755, true);
+                }
+
+                $foto = $_FILES['foto']['name'];
+                $allowed_extensions = ["jpg", "jpeg", "png", "gif", "webp", "heic"];
+                $file_extension = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
+
+                $lokasi = $_FILES['foto']['tmp_name'];
+                if (!empty($foto)) {
+                    move_uploaded_file($lokasi, $folder . '/' . $foto);
+                }
+
+                if (empty($id_penjualan)) {
+                    echo "<script>alert('ID Penjualan tidak ditemukan.');</script>";
+                } else {
+                    $query_insert = "INSERT INTO transaksi_pembayaran (id_penjualan, tgl_bayar, nominal, foto) 
+                                     VALUES ('$id_penjualan', '$tgl_bayar', '$nominal', '$foto')";
+                }
+
+                if ($con->query($query_insert)) {
+                    echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?halaman=riwayat';</script>";
+                } else {
+                    echo "<script>alert('Gagal menyimpan data: " . $con->error . "');</script>";
+                }
+            }
+            ?>
             <script>
                 $(document).ready(function() {
                     $('#myTable').DataTable({
@@ -112,7 +243,18 @@ while ($row = $ambil->fetch_assoc()) {
                     });
                 });
             </script>
+            <script>
+                $.fn.dataTable.ext.errMode = 'none';
 
+                $(document).ready(function() {
+                    $('.btn-add').on('click', function() {
+                        $('#id_penjualan').val($(this).data('id'));
+                        $('#tgl').val($(this).data('tgl'));
+                        $('#tgl_bayar').val('<?php echo date('Y-m-d'); ?>');
+                        $('#total').val('Rp ' + ($(this).data('total')));
+                    });
+                });
+            </script>
         </div>
     </div>
 </div>
