@@ -13,6 +13,7 @@ $harga = "";
 $jumlah = "";
 $ppn = "";
 $total = "";
+$harga_jual = "";
 $tgl_exp = "";
 $no_batch = "";
 
@@ -30,6 +31,7 @@ if (isset($_GET['edit'])) {
         $jumlah = $pecah['jumlah'];
         $ppn = $pecah['ppn'];
         $total = $pecah['total'];
+        $harga_jual = $pecah['harga_jual'];
         $jatuh_tempo = $pecah['jatuh_tempo'];
         $tgl_exp = $pecah['tgl_exp'];
         $no_batch = $pecah['no_batch'];
@@ -39,16 +41,22 @@ if (isset($_GET['edit'])) {
 }
 
 if (isset($_POST['save'])) {
+    $harga = str_replace('.', '', $_POST['harga']);
+    $total = str_replace('.', '', $_POST['total']);
+    $harga_jual = str_replace('.', '', $_POST['harga_jual']);
+
+    $harga = (int)$harga;
+    $total = (int)$total;
+    $harga_jual = (int)$harga_jual;
+
     $tgl = htmlspecialchars($_POST['tgl']);
     $nama_obat = htmlspecialchars($_POST['nama_obat']);
     $suplier = htmlspecialchars($_POST['suplier']);
     $namasuplier = htmlspecialchars($_POST['namasuplier']);
     $nohp = htmlspecialchars($_POST['nohp']);
     $nomorhp = htmlspecialchars($_POST['nomorhp']);
-    $harga = htmlspecialchars($_POST['harga']);
     $jumlah = htmlspecialchars($_POST['jumlah']);
     $ppn = htmlspecialchars($_POST['ppn']);
-    $total = htmlspecialchars($_POST['total']);
     $jatuh_tempo = htmlspecialchars($_POST['jatuh_tempo']);
     $tgl_exp = htmlspecialchars($_POST['tgl_exp']);
     $no_batch = htmlspecialchars($_POST['no_batch']);
@@ -63,9 +71,9 @@ if (isset($_POST['save'])) {
 
     if ($mode == "add") {
         $query = "INSERT INTO pembelian 
-                    (tgl, nama_obat, namasuplier, nohp, harga, ppn, total, tgl_exp, no_batch, tipe, status, jumlah, jatuh_tempo, created_at, updated_at) 
+                    (tgl, nama_obat, namasuplier, nohp, harga, ppn, total, tgl_exp, no_batch, tipe, harga_jual,status, jumlah, jatuh_tempo, created_at, updated_at) 
                   VALUES 
-                    ('$tgl', '$nama_obat', '$final_suplier', '$final_nohp', '$harga', '$ppn', '$total', '$tgl_exp', '$no_batch', '$tipe', '$status', '$jumlah', '$jatuh_tempo', '$created_at', '$updated_at')";
+                    ('$tgl', '$nama_obat', '$final_suplier', '$final_nohp', '$harga', '$ppn', '$total', '$tgl_exp', '$no_batch', '$tipe', '$status','$status', '$jumlah', '$jatuh_tempo', '$created_at', '$updated_at')";
         if ($con->query($query)) {
             echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=pembelian';</script>";
         } else {
@@ -76,7 +84,7 @@ if (isset($_POST['save'])) {
         $query = "UPDATE pembelian 
                   SET tgl='$tgl', nama_obat='$nama_obat', jumlah='$jumlah', namasuplier='$final_suplier', 
                       nohp='$nohp', harga='$harga', ppn='$ppn', total='$total', jatuh_tempo='$jatuh_tempo', 
-                      tgl_exp='$tgl_exp', no_batch='$no_batch', updated_at='$updated_at' 
+                      tgl_exp='$tgl_exp', no_batch='$no_batch', updated_at='$updated_at', harga_jual='$harga_jual'
                   WHERE id_pembelian='$edit_id'";
         if ($con->query($query)) {
             echo "<script>alert('Data berhasil diupdate'); document.location.href='index.php?hal=pembelian';</script>";
@@ -136,7 +144,9 @@ if (isset($_GET['delete'])) {
                         <div class="">
                             <label for="" class="form-label">PPN per gram atau buah (dalam %)</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" name="ppn" id="ppn" oninput="calculateTotal()" value="<?= htmlspecialchars($ppn); ?>" required>
+                                <input type="number" class="form-control" name="ppn" id="ppn"
+                                    value="<?= isset($ppn) && $ppn !== '' ? htmlspecialchars($ppn) : '12'; ?>"
+                                    required>
                             </div>
                         </div>
                         <div class="">
@@ -148,13 +158,21 @@ if (isset($_GET['delete'])) {
                         <div class="">
                             <label for="" class="form-label">Harga per gram atau buah</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" name="harga" id="harga" oninput="calculateTotal()" value="<?= htmlspecialchars($harga); ?>" required>
+                                <input type="text" class="form-control" name="harga" id="harga" oninput="formatNumber(this); calculateTotal()" value="<?= htmlspecialchars($harga); ?>" required>
                             </div>
                         </div>
                         <div class="">
-                            <label for="" class="form-label">Total Rupiah</label>
+                            <label for="total" class="form-label">Total Rupiah</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" name="total" id="total" value="<?= htmlspecialchars($total); ?>" readonly>
+                                <span class="input-group-text">Rp.</span>
+                                <input type="text" class="form-control" name="total" id="total" value="<?= htmlspecialchars($total); ?>" readonly>
+                            </div>
+                        </div>
+                        <div class="">
+                            <label for="harga_jual" class="form-label">Harga Jual</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp.</span>
+                                <input type="text" class="form-control" name="harga_jual" id="harga_jual" value="<?= htmlspecialchars($harga_jual); ?>" readonly>
                             </div>
                         </div>
                         <div class="">
@@ -166,18 +184,24 @@ if (isset($_GET['delete'])) {
                                             <option value="">Pilih suplier</option>
                                             <?php
                                             $ambil = $con->query("SELECT * FROM pembelian");
+                                            $supliers = [];
                                             while ($pecah = $ambil->fetch_assoc()) {
+                                                $suplier_key = $pecah['namasuplier'] . '-' . $pecah['nohp'];
+                                                if (!in_array($suplier_key, $supliers)) {
+                                                    $supliers[] = $suplier_key;
+                                                    $selected = ($pecah['namasuplier'] == $namasuplier) ? 'selected' : '';
                                             ?>
-                                                <option value="<?php echo $pecah['namasuplier']; ?>" data-nohp="<?php echo $pecah['nohp']; ?>">
-                                                    <?php echo $pecah['namasuplier']; ?>
-                                                </option>
-                                            <?php } ?>
+                                                    <option value="<?php echo $pecah['namasuplier']; ?>" data-nohp="<?php echo $pecah['nohp']; ?>" <?php echo $selected; ?>>
+                                                        <?php echo $pecah['namasuplier']; ?>
+                                                    </option>
+                                            <?php }
+                                            } ?>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="input-group">
-                                        <input type="text" name="namasuplier" class="form-control" id="namasuplier" placeholder="Isi nama suplier" value="<?= htmlspecialchars($namasuplier); ?>">
+                                        <input type="text" name="namasuplier" class="form-control" id="namasuplier" placeholder="Isi nama suplier">
                                     </div>
                                 </div>
                             </div>
@@ -188,12 +212,12 @@ if (isset($_GET['delete'])) {
                             <div class="row">
                                 <div class="col-6">
                                     <div class="input-group">
-                                        <input type="text" name="nohp" class="form-control" id="nohp" placeholder="No HP suplier" readonly>
+                                        <input type="text" name="nohp" class="form-control" id="nohp" placeholder="No HP suplier" value="<?= htmlspecialchars($nohp); ?>"  readonly>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="input-group">
-                                        <input type="text" name="nomorhp" class="form-control" id="nomorhp" placeholder="Isi no HP suplier jika belum terisi" value="<?= htmlspecialchars($nohp); ?>">
+                                        <input type="text" name="nomorhp" class="form-control" id="nomorhp" placeholder="Isi no HP suplier jika belum terisi">
                                     </div>
                                 </div>
                             </div>
@@ -247,14 +271,15 @@ if (isset($_GET['delete'])) {
                                     <th>Harga</th>
                                     <th>PPN</th>
                                     <th>Total</th>
+                                    <th>Harga Jual</th>
                                     <th>Tipe</th>
                                     <th>Jatuh Tempo</th>
                                     <th>Tanggal Expired</th>
                                     <th>No Batch</th>
                                     <th>Status</th>
                                     <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
-                                    <th>Aksi</th>
-                                    <?php endif?>
+                                        <th>Aksi</th>
+                                    <?php endif ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -270,9 +295,10 @@ if (isset($_GET['delete'])) {
                                         <td><?php echo $pecah["namasuplier"]; ?></td>
                                         <td><?php echo $pecah["nohp"]; ?></td>
                                         <td><?php echo $pecah["jumlah"]; ?></td>
-                                        <td><?php echo $pecah["harga"]; ?></td>
+                                        <td> Rp. <?= number_format($pecah['harga'], 0, ',', '.') ?></td>
                                         <td><?php echo $pecah["ppn"]; ?></td>
-                                        <td><?php echo $pecah["total"]; ?></td>
+                                        <td> Rp. <?= number_format($pecah['total'], 0, ',', '.') ?></td>
+                                        <td> Rp. <?= number_format($pecah['harga_jual'], 0, ',', '.') ?></td>
                                         <td><?php echo $pecah["tipe"]; ?></td>
                                         <td><?php echo $pecah["jatuh_tempo"]; ?></td>
                                         <td><?php echo $pecah["tgl_exp"]; ?></td>
@@ -309,25 +335,47 @@ if (isset($_GET['delete'])) {
 
 <script>
     function calculateTotal() {
+        let harga = document.getElementById('harga').value.replace(/\./g, '');
+
         var jumlah = parseInt(document.getElementById("jumlah").value);
-        var harga = parseInt(document.getElementById("harga").value);
+        harga = parseInt(harga);
         var ppn = parseInt(document.getElementById("ppn").value);
+
+        if (!harga || isNaN(harga) || !jumlah || isNaN(jumlah) || !ppn || isNaN(ppn)) {
+            document.getElementById("total").value = '';
+            return;
+        }
 
         var sub = jumlah * harga;
         var pajaksub = harga * ppn / 100;
         var pajak = jumlah * pajaksub;
         var total = sub + pajak;
+        var harga_jual = total / jumlah;
 
-        document.getElementById("total").value = total;
+        document.getElementById("total").value = formatNumber(total);
+        document.getElementById("harga_jual").value = formatNumber(harga_jual);
     }
-</script>
 
+    function formatNumber(number) {
+        if (isNaN(number)) return '';
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
 
-<script>
     document.getElementById('suplier').addEventListener('change', function() {
         var selectedOption = this.options[this.selectedIndex];
         var nohp = selectedOption.getAttribute('data-nohp');
-
         document.getElementById('nohp').value = nohp;
     });
+
+    document.getElementById('harga').addEventListener('input', function() {
+        let value = this.value.replace(/[^\d]/g, '');
+        this.value = formatNumber(value);
+    });
+
+    window.onload = function() {
+        let total = document.getElementById('total').value;
+        total = total.replace(/\./g, '');
+        total = parseInt(total);
+        document.getElementById('total').value = formatNumber(total);
+    }
 </script>
