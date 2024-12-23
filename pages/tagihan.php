@@ -5,10 +5,13 @@
 
 <?php
 if (isset($_POST['save'])) {
+    $nominal = str_replace('.', '', $_POST['nominal']);
+
+    $nominal = (int)$nominal;
+
     $id_pembelian = $_POST['id'];
     $tgl_bayar = $_POST['tgl_bayar'];
     $nama_obat = $_POST['nama_obat'];
-    $nominal = $_POST['nominal'];
 
     $folder = "assets/foto/tagihan";
 
@@ -20,10 +23,10 @@ if (isset($_POST['save'])) {
     $allowed_extensions = ["jpg", "jpeg", "png", "gif", "webp", "heic"];
     $file_extension = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
 
-    if (!in_array($file_extension, $allowed_extensions)) {
-        echo "<script>alert('Hanya file JPG atau PNG yang diizinkan!');</script>";
-        exit;
-    }
+    // if (!in_array($file_extension, $allowed_extensions)) {
+    //     echo "<script>alert('Hanya file JPG atau PNG yang diizinkan!');</script>";
+    //     exit;
+    // }
     if (!is_dir($folder)) {
         mkdir($folder, 0755, true);
     }
@@ -62,12 +65,21 @@ $ambil = $con->query("SELECT
     pembelian.jatuh_tempo, pembayaran.tgl_bayar, pembayaran.foto, pembayaran.nominal,COALESCE(SUM(p.nominal), 0) AS total_bayar FROM pembelian 
     LEFT JOIN pembayaran AS p ON pembelian.id_pembelian = p.id_pembelian
     LEFT JOIN pembayaran ON pembelian.id_pembelian = pembayaran.id_pembelian
-    GROUP BY pembelian.id_pembelian, pembelian.tgl, pembelian.nama_obat, 
-    pembelian.jumlah, pembelian.total, pembelian.namasuplier, 
-    pembelian.nohp, pembelian.jatuh_tempo, pembayaran.tgl_bayar, pembayaran.nominal
+    GROUP BY pembelian.id_pembelian
     HAVING (pembelian.total - total_bayar) != 0
     ORDER BY pembelian.id_pembelian, pembayaran.tgl_bayar;
     ");
+
+$ambil = $con->query("SELECT 
+pembelian.id_pembelian, pembelian.jumlah, pembelian.tgl, pembelian.nama_obat, pembelian.total, pembelian.namasuplier, pembelian.nohp, 
+    pembelian.jatuh_tempo, pembayaran.tgl_bayar, pembayaran.foto, pembayaran.nominal FROM pembelian 
+    LEFT JOIN pembayaran ON pembelian.id_pembelian = pembayaran.id_pembelian
+WHERE (pembelian.total - (SELECT COALESCE(SUM(pembayaran.nominal), 0) 
+                       FROM pembayaran 
+                       WHERE pembayaran.id_pembelian = pembelian.id_pembelian)) > 0
+ORDER BY pembelian.id_pembelian, pembayaran.tgl_bayar;
+
+");
 
 $data = [];
 while ($row = $ambil->fetch_assoc()) {
@@ -111,14 +123,12 @@ while ($row = $ambil->fetch_assoc()) {
                                 <th rowspan="2">Total Tagihan</th>
                                 <th rowspan="2">Nama Suplier</th>
                                 <th rowspan="2">Kontak Suplier</th>
-                                <th colspan="4" style="text-align: center;">Penerimaan</th>
+                                <th colspan="3" style="text-align: center;">Penerimaan</th>
                                 <th rowspan="2">Jatuh Tempo</th>
-                                <th rowspan="2">Tanggal Lunas</th>
                                 <th rowspan="2">Sisa Tagihan</th>
                                 <th rowspan="2">Aksi</th>
                             </tr>
                             <tr>
-                                <th>Ke</th>
                                 <th>Tanggal Terima</th>
                                 <th>Nominal Terbayar</th>
                                 <th>Foto Bukti</th>
@@ -127,9 +137,7 @@ while ($row = $ambil->fetch_assoc()) {
                         <tbody>
                             <?php
                             $no = 1;
-                            $nomer = 1;
                             foreach ($data as $id_pembelian => $item) {
-                                $tgl_lunas = end($item['pembayaran'])['tgl_bayar'] ?? '-';
                                 $sisa = $item['total'];
                                 if (!empty($item['pembayaran'])) {
                                     foreach ($item['pembayaran'] as $terima) {
@@ -145,11 +153,6 @@ while ($row = $ambil->fetch_assoc()) {
                                     <td>Rp <?= number_format($item['total'], 0, ',', '.') ?></td>
                                     <td><?php echo htmlspecialchars($item['namasuplier']); ?></td>
                                     <td><?php echo htmlspecialchars($item['nohp']); ?></td>
-                                    <td><?php
-                                        foreach ($item['pembayaran'] as $pembayaran) {
-                                            echo $nomer++ . '<br>';
-                                        }
-                                        ?></td>
                                     <td>
                                         <?php
                                         foreach ($item['pembayaran'] as $pembayaran) {
@@ -160,22 +163,23 @@ while ($row = $ambil->fetch_assoc()) {
                                     <td>
                                         <?php
                                         foreach ($item['pembayaran'] as $pembayaran) {
-                                            echo htmlspecialchars($pembayaran['nominal']) . '<br>';
+                                            echo htmlspecialchars('Rp '.number_format($pembayaran['nominal'], 0, ',', '.')
+                                            ) . '<br>';
                                         }
                                         ?>
                                     </td>
                                     <td>
                                         <?php
                                         foreach ($item['pembayaran'] as $pembayaran) {
-                                            $fotoPath = 'assets/foto/tagihan/' . htmlspecialchars($pembayaran['foto']);
-                                            echo '<a href="' . $fotoPath . '" target="_blank">Lihat Foto</a><br>';
+                                            if (!empty($pembayaran['foto'])) {
+                                                $fotoPath = 'assets/foto/tagihan/' . htmlspecialchars($pembayaran['foto']);
+                                                echo '<a href="' . $fotoPath . '" target="_blank">Lihat Foto</a><br>';
+                                            }
                                         }
                                         ?>
-
                                     </td>
                                     <td><?php echo htmlspecialchars($item['jatuh_tempo']); ?></td>
-                                    <td><?php echo htmlspecialchars($tgl_lunas); ?></td>
-                                    <td>Rp <?= number_format($sisa, 0, ',', '.') ?></td>
+                                    <td><b>Rp <?= number_format($sisa, 0, ',', '.') ?></b></td>
                                     <td>
                                         <button type="button" class="btn btn-success btn-add" data-toggle="modal" data-target="#terima"
                                             data-id="<?php echo htmlspecialchars($id_pembelian); ?>"
@@ -215,12 +219,11 @@ while ($row = $ambil->fetch_assoc()) {
                                     <input type="date" class="form-control" name="tgl_bayar" id="tgl_bayar" value="<?php echo date('Y-m-d'); ?>" required>
                                 </div>
                                 <div>
-                                    <label for="sisa" class="form-label">Yang harus dibayar</label>
-                                    <input type="text" class="form-control" name="sisa" id="sisa" value="Rp <?= number_format($sisa, 0, ',', '.') ?>" readonly>
-                                </div>
-                                <div>
                                     <label for="nominal" class="form-label">Nominal</label>
-                                    <input type="text" class="form-control" name="nominal" id="nominal" required>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp.</span>
+                                        <input type="text" class="form-control" name="nominal" id="nominal" oninput="formatNumber(this)" required>
+                                    </div>
                                 </div>
                                 <div class="">
                                     <label for="margin" class="form-label">Foto Bukti</label>
@@ -246,11 +249,16 @@ while ($row = $ambil->fetch_assoc()) {
                         $('#id_pembelian').val($(this).data('id'));
                         $('#tgl').val($(this).data('tgl'));
                         $('#nama_obat').val($(this).data('nama_obat'));
-                        // $('#jumlah').val($(this).data('jumlah'));
                         $('#foto').val($(this).data('foto'));
                         $('#tgl_bayar').val('<?php echo date('Y-m-d'); ?>');
                     });
                 });
+
+                function formatNumber(input) {
+                    let value = input.value.replace(/\D/g, '');
+                    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    input.value = value;
+                }
             </script>
         </div>
     </div>

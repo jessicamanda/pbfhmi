@@ -4,10 +4,13 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <?php
+$sales_id = $_SESSION['admin']['id'];
+
 if (isset($_POST['save'])) {
     $tgl = htmlspecialchars($_POST['tgl']);
-    $no_nota = htmlspecialchars($_POST['no_nota']);
+    $no_nota = htmlspecialchars(date('Ymdhis'));
     $nama_pelanggan = htmlspecialchars($_POST['nama_pelanggan']);
+    $sales_id = $sales_id;
     $provinsi = htmlspecialchars($_POST['provinsi']);
     $kota = htmlspecialchars($_POST['kota']);
     $kecamatan = htmlspecialchars($_POST['kecamatan']);
@@ -31,13 +34,13 @@ if (isset($_POST['save'])) {
             exit;
         }
     }
-    
+
     $getLastUser = $con->query("SELECT * FROM user ORDER BY id DESC LIMIT 1")->fetch_assoc();
 
-    $user_id = $getLastUser['id']+1;
+    $user_id = $getLastUser['id'] + 1;
 
-    $con->query("INSERT INTO transaksi (tgl, no_nota, nama_pelanggan, user_id, instansi, nohp, alamat, total, status,provinsi, kota, kecamatan, kelurahan,kode_pos) VALUES ('$tgl', '$no_nota', '$nama_pelanggan', '$user_id', '$instansi', '$nohp', '$alamat', '$total', '$status', '$provinsi', '$kota', '$kecamatan', '$kelurahan','$kode_pos')");
-    $con->query("INSERT INTO user (id, username, nama_lengkap, password, role) VALUES ('$user_id', '$nama_pelanggan', '$nama_pelanggan', '$nohp', 'pelanggan')");
+    $con->query("INSERT INTO transaksi (tgl, no_nota, nama_pelanggan, user_id, instansi, nohp, alamat, total, status,provinsi, kota, kecamatan, kelurahan,kode_pos, sales_id) VALUES ('$tgl', '$no_nota', '$nama_pelanggan', '$user_id', '$instansi', '$nohp', '$alamat', '$total', '$status', '$provinsi', '$kota', '$kecamatan', '$kelurahan','$kode_pos', '$sales_id')");
+    $con->query("INSERT INTO user (id, username, nama_lengkap, password, role, nohp) VALUES ('$user_id', '$nama_pelanggan', '$nama_pelanggan', '$nohp', 'pelanggan', '$nohp')");
 
     foreach ($_SESSION['keranjang'] as $item) {
         $nama_obat = $item['nama_obat'];
@@ -53,12 +56,15 @@ if (isset($_POST['save'])) {
     echo "<script>alert('Transaksi berhasil disimpan'); document.location.href='index.php?hal=data-penjualan-sales';</script>";
 }
 
-
 if (isset($_POST['keranjang'])) {
+    $harga = str_replace('.', '', $_POST['harga']);
+    $sub_total = str_replace('.', '', $_POST['sub_total']);
+
+    $harga = (int)$harga;
+    $sub_total = (int)$sub_total;
+
     $nama_obat = $_POST['nama_obat'];
-    $harga = $_POST['harga'];
     $jumlah = $_POST['jumlah'];
-    $sub_total = $_POST['sub_total'];
 
     if (!isset($_SESSION['keranjang'])) {
         $_SESSION['keranjang'] = [];
@@ -94,10 +100,10 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <label for="tgl" class="form-label">Tanggal Penjualan</label>
                             <input type="text" class="form-control" name="tgl" value="<?= htmlspecialchars(date('Y-m-d')); ?>" readonly>
                         </div>
-                        <div class="">
+                        <!-- <div class="">
                             <label for="no_nota" class="form-label">Nomor Nota</label>
                             <input type="number" class="form-control" name="no_nota" value="<?= htmlspecialchars(date('Ymdhis')); ?>" required>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
@@ -112,10 +118,20 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <select name="nama_obat" class="form-control" id="nama_obat" required>
                                 <option value="" disabled selected>Pilih Nama Obat</option>
                                 <?php
-                                $ambil = $con->query("SELECT * FROM pembelian JOIN stok on pembelian.nama_obat=stok.nama_obat");
+                                $ambil = $con->query("SELECT pembelian.nama_obat, stok.stok, pembelian.harga_jual
+                                FROM pembelian
+                                JOIN stok ON pembelian.nama_obat = stok.nama_obat
+                                WHERE pembelian.status = 'Sudah Datang'
+                                AND pembelian.created_at = (
+                                    SELECT MAX(created_at)
+                                    FROM pembelian AS harga_jual_terakhir
+                                    WHERE harga_jual_terakhir.nama_obat = pembelian.nama_obat
+                                )
+                                ORDER BY pembelian.nama_obat ASC
+                                ");
                                 while ($pecah = $ambil->fetch_assoc()) {
                                 ?>
-                                    <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga']; ?>"><?php echo $pecah['nama_obat']; ?></option>
+                                    <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga_jual']; ?>"><?php echo $pecah['nama_obat']; ?></option>
                                 <?php } ?>
                             </select>
                         </div>
@@ -142,8 +158,13 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <label for="sub_total" class="form-label">Sub Harga</label>
                             <input type="text" name="sub_total" class="form-control" id="sub_total" readonly>
                         </div>
-                        <button type="submit" class="btn btn-primary" name="keranjang">Tambah Ke Keranjang</button>
+                        <button type="submit" oninput="calculateTotal()" class="btn btn-primary" name="keranjang">Tambah Ke Keranjang</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
+
     <form action="" method="post">
         <button type="submit" class="btn btn-danger" name="reset_keranjang">Reset Keranjang</button>
     </form>
@@ -172,41 +193,37 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
         <tfoot>
             <tr>
                 <td colspan="4">Total</td>
-                <td><?= $total ?></td>
+                <td>Rp <?= number_format($total, 0, ',', '.') ?></td>
             </tr>
         </tfoot>
     </table>
-</div>
-</div>
-</div>
-</div>
 
-<form action="" method="post">
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card shadow p-2 mt-2">
-                    <input type="text" hidden class="form-control" name="tgl" value="<?= htmlspecialchars(date('Y-m-d')); ?>">
-                    <input type="number" hidden class="form-control" name="no_nota" value="<?= htmlspecialchars(date('Ymdhis')); ?>">
-                    <div class="">
-                        <label for="" class="form-label">Nama Pelanggan</label>
-                        <div class="input-group">
-                            <input type="text" name="nama_pelanggan" class="form-control" id="nama_pelanggan">
+    <form action="" method="post">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card shadow p-2 mt-2">
+                        <input type="text" hidden class="form-control" name="tgl" value="<?= htmlspecialchars(date('Y-m-d')); ?>">
+                        <input type="number" hidden class="form-control" name="no_nota" value="<?= htmlspecialchars(date('Ymdhis')); ?>">
+                        <div class="">
+                            <label for="" class="form-label">Nama Pelanggan</label>
+                            <div class="input-group">
+                                <input type="text" name="nama_pelanggan" class="form-control" id="nama_pelanggan">
+                            </div>
                         </div>
-                    </div>
-                    <div class="">
-                        <label for="" class="form-label">Instansi</label>
-                        <div class="input-group">
-                            <input type="text" name="instansi" class="form-control" id="instansi">
+                        <div class="">
+                            <label for="" class="form-label">Instansi</label>
+                            <div class="input-group">
+                                <input type="text" name="instansi" class="form-control" id="instansi">
+                            </div>
                         </div>
-                    </div>
-                    <div class="">
-                        <label for="" class="form-label">No HP Pelanggan</label>
-                        <div class="input-group">
-                            <input type="text" name="nohp" class="form-control" id="nohp">
+                        <div class="">
+                            <label for="" class="form-label">No HP Pelanggan</label>
+                            <div class="input-group">
+                                <input type="text" name="nohp" class="form-control" id="nohp">
+                            </div>
                         </div>
-                    </div>
-                    <div class="row">
+                        <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label for="basic-url" class="form-label">Provinsi</label>
                                 <select id="provinsi" required class="form-select">
@@ -242,20 +259,19 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                                 </div>
                             </div>
                         </div>
-                    <div class="mb-4">
-                        <label for="" class="form-label">Alamat Pelanggan</label>
-                        <div class="input-group">
-                            <textarea type="text" style="min-height: 150px;" name="alamat" class="form-control border border-success" id="alamat"
-                                placeholder="Alamat Lengkap" value=""></textarea>
+                        <div class="mb-4">
+                            <label for="" class="form-label">Alamat Pelanggan</label>
+                            <div class="input-group">
+                                <textarea type="text" style="min-height: 150px;" name="alamat" class="form-control border border-success" id="alamat"
+                                    placeholder="Alamat Lengkap" value=""></textarea>
+                            </div>
                         </div>
                     </div>
+                    <button type="submit" class="btn btn-primary mt-4" name="save">Simpan Transaksi</button>
                 </div>
-                <button type="submit" class="btn btn-primary mt-4" name="save">Simpan Transaksi</button>
             </div>
         </div>
-    </div>
-</form>
-
+    </form>
 
 </div>
 
@@ -456,5 +472,38 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
         const harga = parseFloat(document.getElementById('harga').value) || 0;
         const jumlah = parseInt(this.value) || 0;
         document.getElementById('sub_total').value = harga * jumlah;
+    });
+</script>
+
+<script>
+    function formatNumber(number) {
+        if (isNaN(number)) return '';
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    function getCleanValue(value) {
+        return parseInt(value.replace(/\./g, '')) || 0;
+    }
+
+    function calculateSubTotal() {
+        const harga = getCleanValue(document.getElementById('harga').value || '0');
+        const jumlah = parseInt(document.getElementById('jumlah').value || '0');
+
+        if (!harga || !jumlah) {
+            document.getElementById('sub_total').value = '';
+            return;
+        }
+
+        const subTotal = harga * jumlah;
+        document.getElementById('sub_total').value = formatNumber(subTotal);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('harga').addEventListener('input', function() {
+            let value = this.value.replace(/[^\d]/g, '');
+            this.value = formatNumber(value);
+        });
+
+        document.getElementById('jumlah').addEventListener('input', calculateSubTotal);
     });
 </script>
