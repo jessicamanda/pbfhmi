@@ -21,6 +21,11 @@
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+  <style>
+    body {
+      background-color:rgb(115, 194, 134);
+    }
+  </style>
 </head>
 
 <body class="">
@@ -66,10 +71,10 @@
 
                   $result = $con->query("SELECT * FROM user WHERE username='$username'");
                   if ($result->num_rows > 0) {
-                  echo "<script>alert('Username sudah digunakan');</script>";
+                    echo "<script>alert('Username sudah digunakan');</script>";
                   } else {
-                  $con->query("INSERT INTO user (nama_lengkap, nohp, username, password, role) VALUES ('$nama_lengkap','$nohp', '$username','$password', 'pelanggan')");
-                  echo "<script>alert('User berhasil disimpan'); document.location.href='./login-customer.php';</script>";
+                    $con->query("INSERT INTO user (nama_lengkap, nohp, username, password, role) VALUES ('$nama_lengkap','$nohp', '$username','$password', 'pelanggan')");
+                    echo "<script>alert('User berhasil disimpan'); document.location.href='./login-customer.php';</script>";
                   }
                 }
                 ?>

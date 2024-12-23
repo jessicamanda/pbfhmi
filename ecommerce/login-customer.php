@@ -1,5 +1,5 @@
-<?php session_start();?>
-<?php include "../koneksi.php";?>
+<?php session_start(); ?>
+<?php include "../koneksi.php"; ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="assets/img/apple-icon.png">
   <link rel="icon" href="assets/img/logo.jpeg">
   <title>
-    <?= $appname?>
+    <?= $appname ?>
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -21,6 +21,11 @@
   <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
   <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+  <style>
+    body {
+      background-color:rgb(115, 194, 134);
+    }
+  </style>
 </head>
 
 <body class="">
@@ -31,11 +36,11 @@
           <center>
             <div class="card shadow-lg" style="max-width: 360px;">
               <div class="card-header pb-0 text-start">
-              <p class="mb-0">Welcome to,</p>
-                <h4 class="font-weight-bolder" style="color: #0F5220;"><?= $appname?> App</h4>
+                <p class="mb-0">Welcome to,</p>
+                <h4 class="font-weight-bolder" style="color: #0F5220;"><?= $appname ?> App</h4>
               </div>
               <div class="card-body">
-                <form  method="post">
+                <form method="post">
                   <div class="mb-3">
                     <input type="text" name="username" class="form-control form-control-lg" placeholder="Username" aria-label="Username">
                   </div>
@@ -50,41 +55,41 @@
                       Belum punya akun? <a href="./register-customer.php">Register</a>
                     </p>
                 </form>
-                <?php 
-                  if (isset($_POST['login'])) {
-                      $username =$_POST['username'];
-                      $password =$_POST['password'];
-                  
-                      // $sql = "SELECT * FROM user INNER JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;";
-                      $sql = "SELECT user.id, user.nama_lengkap, user.username, user.password, user.nohp, user.provinsi, user.kota, user.kecamatan, user.kelurahan, user.kode_pos, user.alamat, user.role, transaksi.instansi  FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;";
-                      $result = $con->query($sql);
-                  
-                      if ($result->num_rows > 0) {
-                          $row = $result->fetch_assoc();
-                          if ($password == $row['password']) {
-                              $_SESSION['username'] = $row['username'];
-                              $_SESSION['admin'] = $row;
-                              header("Location: ./index.php"); // Redirect to dashboard or any other page
-                              echo  "Berhasil";
-                          } else {
-                              $error = "Invalid password";
-                              echo "
+                <?php
+                if (isset($_POST['login'])) {
+                  $username = $_POST['username'];
+                  $password = $_POST['password'];
+
+                  // $sql = "SELECT * FROM user INNER JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;";
+                  $sql = "SELECT user.id, user.nama_lengkap, user.username, user.password, user.nohp, user.provinsi, user.kota, user.kecamatan, user.kelurahan, user.kode_pos, user.alamat, user.role, transaksi.instansi  FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '$username' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;";
+                  $result = $con->query($sql);
+
+                  if ($result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    if ($password == $row['password']) {
+                      $_SESSION['username'] = $row['username'];
+                      $_SESSION['admin'] = $row;
+                      header("Location: ./index.php"); // Redirect to dashboard or any other page
+                      echo  "Berhasil";
+                    } else {
+                      $error = "Invalid password";
+                      echo "
                                 <script>
                                   alert('Password Salah');
                                   document.location.href='login-customer.php';
                                 </script>
                               ";
-                          }
-                      } else {
-                          $error = "Invalid username";
-                          echo "
+                    }
+                  } else {
+                    $error = "Invalid username";
+                    echo "
                           <script>
                             alert('Username Salah');
                             document.location.href='login-customer.php';
                           </script>
                         ";
-                      }
                   }
+                }
                 ?>
               </div>
             </div>
