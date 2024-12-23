@@ -22,7 +22,11 @@
   <!-- CSS Files -->
   <link id="pagestyle" href="assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
 </head>
-
+<style>
+  body{
+    background-color: #0F5220;
+  }
+</style>
 <body class="">
   <main class="main-content  mt-0">
     <section>

@@ -1,6 +1,8 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <?php include "../koneksi.php"; ?>
 
 <?php
@@ -136,9 +138,15 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                         <?php endforeach; ?>
                                     </td>
                                     <td>
-                                        <?php foreach ($transaksi['pembayaran'] as $pembayaran): ?>
-                                            <a href="assets/foto/tagihan/<?= $pembayaran['foto'] ?>" target="_blank">Lihat Foto</a><br>
-                                        <?php endforeach; ?>
+                                        <?php
+                                        foreach ($transaksi['pembayaran'] as $pembayaran) {
+                                            if (!empty($pembayaran['foto'])) {
+                                                $fotoPath = 'assets/foto/tagihan/' . htmlspecialchars($pembayaran['foto']);
+                                                echo '<a href="' . $fotoPath . '" target="_blank">Lihat Foto</a><br>';
+                                            }
+                                        }
+                                        ?>
+
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-success btn-add"
@@ -146,7 +154,7 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                             data-bs-target="#terima"
                                             data-id="<?= $id_penjualan ?>"
                                             data-tgl="<?= $transaksi['tgl'] ?>"
-                                            data-total="<?= $transaksi['total'] ?>">
+                                            data-sisa="<?= $sisa ?>">
                                             Bayar
                                         </button>
                                     </td>
@@ -175,15 +183,17 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                     <input type="date" class="form-control" name="tgl_bayar" id="tgl_bayar" required>
                                 </div>
                                 <div>
-                                    <label for="total" class="form-label">Yang harus dibayar</label>
-                                    <input type="text" class="form-control" name="total" id="total" readonly>
+                                    <label for="sisa" class="form-label">Yang harus dibayar</label>
+                                    <input type="text" class="form-control" name="sisa" id="sisa" readonly>
                                 </div>
 
                                 <div>
                                     <label for="nominal" class="form-label">Nominal</label>
-                                    <input type="text" class="form-control" name="nominal" id="nominal" required>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp.</span>
+                                        <input type="text" class="form-control" oninput="formatNumber(this)" name="nominal" id="nominal" required>
+                                    </div>
                                 </div>
-
                                 <div class="">
                                     <label for="margin" class="form-label">Foto Bukti</label>
                                     <div class="input-group">
@@ -193,7 +203,7 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary" name="save">Simpan Data</button>
                             </div>
                         </form>
@@ -202,9 +212,11 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
             </div>
             <?php
             if (isset($_POST['save'])) {
+                $nominal = str_replace('.', '', $_POST['nominal']);
+
+                $nominal = (int)$nominal;
                 $id_penjualan = $_POST['id'];
                 $tgl_bayar = $_POST['tgl_bayar'];
-                $nominal = $_POST['nominal'];
 
                 $folder = "assets/foto/tagihan";
                 if (!is_dir($folder)) {
@@ -251,9 +263,15 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                         $('#id_penjualan').val($(this).data('id'));
                         $('#tgl').val($(this).data('tgl'));
                         $('#tgl_bayar').val('<?php echo date('Y-m-d'); ?>');
-                        $('#total').val('Rp ' + ($(this).data('total')));
+                        $('#sisa').val('Rp ' + new Intl.NumberFormat('id-ID').format($(this).data('sisa')));
                     });
                 });
+
+                function formatNumber(input) {
+                    let value = input.value.replace(/\D/g, '');
+                    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    input.value = value;
+                }
             </script>
         </div>
     </div>

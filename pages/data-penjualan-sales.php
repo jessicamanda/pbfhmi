@@ -9,19 +9,21 @@ if (isset($_GET['acc'])) {
     echo "<script>alert('Pesanan akan diproses'); document.location.href='index.php?hal=data-penjualan-sales';</script>";
 }
 
-$ambil = $con->query("SELECT 
-    transaksi.id_penjualan, transaksi.no_nota, transaksi.instansi, transaksi.status, transaksi.tgl, 
-    transaksi.nama_pelanggan, transaksi.alamat, transaksi.nohp, transaksi.total, 
-    transaksi_produk.nama_obat, transaksi_produk.jumlah, transaksi_produk.sub_total, 
-    transaksi_pembayaran.tgl_bayar, transaksi_pembayaran.foto, transaksi_pembayaran.nominal, 
-    transaksi.provinsi, transaksi.kota, transaksi.kecamatan, transaksi.kelurahan, transaksi.kode_pos
-FROM transaksi 
-LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota
-LEFT JOIN transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan
-ORDER BY transaksi.id_penjualan, transaksi_pembayaran.tgl_bayar;
-");
+$id = $_SESSION['admin']['id'];
+$id = mysqli_real_escape_string($con, $id);
+
+
+$transaksi_produk = $con->query("SELECT transaksi.id_penjualan, transaksi.no_nota,transaksi.instansi, transaksi.status, transaksi.tgl, 
+    transaksi.nama_pelanggan, transaksi.alamat, transaksi.provinsi, transaksi.kota, transaksi.kelurahan, transaksi.kecamatan, transaksi.kode_pos, transaksi.nohp, transaksi.total,transaksi_produk.nama_obat,
+    transaksi_produk.jumlah,transaksi_produk.sub_total FROM transaksi LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota
+    WHERE transaksi.sales_id = '$id'");
+
+$transaksi_pembayaran = $con->query("SELECT transaksi.id_penjualan, transaksi_pembayaran.tgl_bayar, transaksi_pembayaran.nominal, 
+        transaksi_pembayaran.foto FROM transaksi LEFT JOIN transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan
+    WHERE transaksi.sales_id = '$id'");
+
 $data = [];
-while ($row = $ambil->fetch_assoc()) {
+while ($row = $transaksi_produk->fetch_assoc()) {
     $id_penjualan = $row['id_penjualan'];
     if (!isset($data[$id_penjualan])) {
         $data[$id_penjualan] = [
@@ -38,27 +40,35 @@ while ($row = $ambil->fetch_assoc()) {
             'kecamatan' => $row['kecamatan'],
             'kelurahan' => $row['kelurahan'],
             'kode_pos' => $row['kode_pos'],
-            'transaksi_produk' => [],
-            'transaksi_pembayaran' => [],
+            'produk' => [],
+            'pembayaran' => [],
         ];
     }
-    $data[$id_penjualan]['transaksi_produk'][] = [
+    $data[$id_penjualan]['produk'][] = [
         'nama_obat' => $row['nama_obat'],
         'jumlah' => $row['jumlah'],
-        'sub_total' => $row['sub_total'],
-    ];
-    $data[$id_penjualan]['transaksi_pembayaran'][] = [
-        'tgl_bayar' => $row['tgl_bayar'],
-        'nominal' => $row['nominal'],
-        'foto' => $row['foto'],
+        'sub_total' => $row['sub_total']
     ];
 }
+while ($row = $transaksi_pembayaran->fetch_assoc()) {
+    $id_penjualan = $row['id_penjualan'];
+    if (isset($data[$id_penjualan])) {  // Fix here: use $data instead of $data_transaksi
+        $data[$id_penjualan]['pembayaran'][] = [
+            'tgl_bayar' => $row['tgl_bayar'],
+            'nominal' => $row['nominal'],
+            'foto' => $row['foto']
+        ];
+    }
+}
+
 
 // Handle payment submission
 if (isset($_POST['save'])) {
     $id_penjualan = $_POST['id'];
     $tgl_bayar = $_POST['tgl_bayar'];
-    $nominal = $_POST['nominal'];
+    $nominal = str_replace('.', '', $_POST['nominal']);
+
+    $nominal = (int)$nominal;
 
     $folder = "assets/foto/tagihan";
     if (!is_dir($folder)) {
@@ -69,10 +79,10 @@ if (isset($_POST['save'])) {
     $allowed_extensions = ["jpg", "jpeg", "png", "gif", "webp", "heic"];
     $file_extension = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
 
-    if (!in_array($file_extension, $allowed_extensions)) {
-        echo "<script>alert('Hanya file JPG atau PNG yang diizinkan!');</script>";
-        exit;
-    }
+    // if (!in_array($file_extension, $allowed_extensions)) {
+    //     echo "<script>alert('Hanya file JPG atau PNG yang diizinkan!');</script>";
+    //     exit;
+    // }
 
     $lokasi = $_FILES['foto']['tmp_name'];
     if (!empty($foto)) {
@@ -144,13 +154,19 @@ if (isset($_POST['save'])) {
                             <?php
                             $no = 1;
                             $nomer = 1;
-                            foreach ($data as $id_penjualan => $pecah) {
+                            foreach ($data as $pecah){
                                 $sisa = $pecah['total'];
-                                if (!empty($pecah['transaksi_pembayaran'])) {
-                                    foreach ($pecah['transaksi_pembayaran'] as $terima) {
+                                if (!empty($pecah['pembayaran'])) {
+                                    foreach ($pecah['pembayaran'] as $terima) {
                                         $sisa -= $terima['nominal'];
                                     }
                                 }
+
+                                if ($sisa == 0) {
+                                    $status = 'Lunas';
+                                } else {
+                                    $status = 'Belum Lunas';
+                                } 
                             ?>
                                 <tr>
                                     <td><?php echo $no++; ?></td>
@@ -172,56 +188,65 @@ if (isset($_POST['save'])) {
 
                                     <td>
                                         <?php
-                                        foreach ($pecah['transaksi_produk'] as $transaksi_produk) {
-                                            echo htmlspecialchars($transaksi_produk['nama_obat']) . '<br>';
+                                        foreach ($pecah['produk'] as $produk) {
+                                            echo htmlspecialchars($produk['nama_obat']) . '<br>';
                                         }
                                         ?>
                                     </td>
                                     <td>
                                         <?php
-                                        foreach ($pecah['transaksi_produk'] as $transaksi_produk) {
-                                            echo htmlspecialchars($transaksi_produk['jumlah']) . '<br>';
+                                        foreach ($pecah['produk'] as $produk) {
+                                            echo htmlspecialchars($produk['jumlah']) . '<br>';
                                         }
                                         ?>
                                     </td>
                                     <td>
                                         <?php
-                                        foreach ($pecah['transaksi_produk'] as $transaksi_produk) {
-                                            echo $transaksi_produk['sub_total'] . '<br>';
+                                        foreach ($pecah['produk'] as $produk) {
+                                            echo 'Rp' . number_format($produk['sub_total'], 0, ',', '.')
+                                                . '<br>';
                                         }
                                         ?>
                                     </td>
                                     <td><b>Rp <?= number_format($pecah["total"], 0, '', '.') ?></b></td>
                                     <td><?php echo $pecah["status"]; ?></td>
-                                    <td><b>Rp <?= number_format($sisa, 0, ',', '.') ?></b></td>
-                                    <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                    <td style="color: red;"><b>Rp <?= number_format($sisa, 0, ',', '.') ?></b></td>
+                                    <?php if ($_SESSION['admin']['role'] === 'ceo' && $pecah["status"] === 'Diproses'): ?>
                                         <td>
                                             <a href="index.php?hal=data-penjualan-sales&acc=<?php echo $id_penjualan; ?>" class="btn btn-success">
                                                 ACC
                                             </a>
                                         </td>
                                     <?php endif ?>
+                                    <?php if ($_SESSION['admin']['role'] === 'ceo' && $pecah["status"] === 'ACC'): ?>
+                                        <td>
+                                            <h6 style="color: red;">SUDAH ACC</h6>
+                                        </td>
+                                    <?php endif ?>
 
                                     <?php if ($_SESSION['admin']['role'] === 'sales'): ?>
                                         <td>
                                             <?php
-                                            foreach ($pecah['transaksi_pembayaran'] as $pembayaran) {
+                                            foreach ($pecah['pembayaran'] as $pembayaran) {
                                                 echo htmlspecialchars($pembayaran['tgl_bayar']) . '<br>';
                                             }
                                             ?>
                                         </td>
                                         <td>
                                             <?php
-                                            foreach ($pecah['transaksi_pembayaran'] as $pembayaran) {
-                                                echo htmlspecialchars($pembayaran['nominal']) . '<br>';
+                                            foreach ($pecah['pembayaran'] as $pembayaran) {
+                                                echo "Rp " . htmlspecialchars(number_format($pembayaran['nominal'], 0, ',', '.')) . '<br>';
                                             }
                                             ?>
                                         </td>
+
                                         <td>
                                             <?php
-                                            foreach ($pecah['transaksi_pembayaran'] as $pembayaran) {
-                                                $fotoPath = 'assets/foto/tagihan/' . htmlspecialchars($pembayaran['foto']);
-                                                echo '<a href="' . $fotoPath . '" target="_blank">Lihat Foto</a><br>';
+                                            foreach ($pecah['pembayaran'] as $pembayaran) {
+                                                if (!empty($pembayaran['foto'])) {
+                                                    $fotoPath = 'assets/foto/tagihan/' . htmlspecialchars($pembayaran['foto']);
+                                                    echo '<a href="' . $fotoPath . '" target="_blank">Lihat Foto</a><br>';
+                                                }
                                             }
                                             ?>
                                         </td>
@@ -266,7 +291,10 @@ if (isset($_POST['save'])) {
 
                                 <div>
                                     <label for="nominal" class="form-label">Nominal</label>
-                                    <input type="text" class="form-control" name="nominal" id="nominal" required>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp.</span>
+                                        <input type="text" class="form-control" name="nominal" id="nominal" oninput="formatNumber(this)" required>
+                                    </div>
                                 </div>
 
                                 <div class="">
@@ -278,7 +306,7 @@ if (isset($_POST['save'])) {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary" name="save">Simpan Data</button>
                             </div>
                         </form>
@@ -297,6 +325,12 @@ if (isset($_POST['save'])) {
                         $('#total').val('Rp ' + new Intl.NumberFormat('id-ID').format($(this).data('sisa')));
                     });
                 });
+
+                function formatNumber(input) {
+                    let value = input.value.replace(/\D/g, '');
+                    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                    input.value = value;
+                }
             </script>
         </div>
     </div>

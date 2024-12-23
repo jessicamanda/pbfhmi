@@ -225,7 +225,7 @@ while ($row = $ambil->fetch_assoc()) {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary" name="save">Simpan Data</button>
                             </div>
                         </form>

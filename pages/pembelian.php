@@ -346,94 +346,86 @@ if (isset($_GET['delete'])) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 <script>
-// Format angka dengan menambahkan titik sebagai pemisah ribuan
-function formatNumber(number) {
-    if (isNaN(number)) return '';
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
-
-// Ambil nilai bersih dari input (tanpa titik)
-function getCleanValue(id) {
-    const field = document.getElementById(id);
-    if (field && field.value) {
-        return parseInt(field.value.replace(/\./g, '')) || 0;
-    }
-    return 0;
-}
-
-// Hitung total dan harga jual
-function calculateTotal() {
-    let harga = getCleanValue('harga');
-    let jumlah = getCleanValue('jumlah');
-    let ppn = getCleanValue('ppn');
-    let margin = getCleanValue('margin');
-
-    if (!harga || !jumlah || !ppn) {
-        document.getElementById("total").value = '';
-        return;
+    function formatNumber(number) {
+        if (isNaN(number)) return '';
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
-    let pajaksub = harga * ppn / 100;
-    let pajak = harga + pajaksub;
-    let harga_jual = pajak * (margin / 100);
-    let total = pajak * jumlah;
-
-    document.getElementById("total").value = formatNumber(total);
-    document.getElementById("harga_jual").value = formatNumber(harga_jual);
-}
-
-// Terapkan format angka pada input saat halaman dimuat
-window.onload = function() {
-    const fieldsToFormat = ['harga', 'harga_jual', 'total'];
-    fieldsToFormat.forEach(id => {
-        let field = document.getElementById(id);
-        if (field && field.value) {
-            let value = field.value.replace(/\./g, '');
-            value = parseInt(value);
-            field.value = formatNumber(value);
-        }
-    });
-};
-
-// Terapkan pemformatan angka pada input
-function applyFormattingListeners() {
-    ['harga', 'harga_jual', 'total'].forEach(id => {
+    function getCleanValue(id) {
         const field = document.getElementById(id);
-        if (field) {
-            field.addEventListener('input', function() {
-                let value = this.value.replace(/[^\d]/g, '');
-                this.value = formatNumber(value);
-            });
-        }
-    });
-}
-
-// Persiapkan data sebelum dikirim ke server
-function prepareFormSubmission() {
-    const fields = ['harga', 'harga_jual', 'total'];
-    fields.forEach(id => {
-        let field = document.getElementById(id);
         if (field && field.value) {
-            field.value = field.value.replace(/\./g, '');
+            return parseInt(field.value.replace(/\./g, '')) || 0;
         }
+        return 0;
+    }
+
+    function calculateTotal() {
+        let harga = getCleanValue('harga');
+        let jumlah = getCleanValue('jumlah');
+        let ppn = getCleanValue('ppn');
+        let margin = getCleanValue('margin');
+
+        if (!harga || !jumlah || !ppn) {
+            document.getElementById("total").value = '';
+            return;
+        }
+
+        let pajaksub = harga * ppn / 100;
+        let pajak = harga + pajaksub;
+        let harga_jual = pajak * (margin / 100);
+        let total = pajak * jumlah;
+
+        document.getElementById("total").value = formatNumber(total);
+        document.getElementById("harga_jual").value = formatNumber(harga_jual);
+    }
+
+    window.onload = function() {
+        const fieldsToFormat = ['harga', 'harga_jual', 'total'];
+        fieldsToFormat.forEach(id => {
+            let field = document.getElementById(id);
+            if (field && field.value) {
+                let value = field.value.replace(/\./g, '');
+                value = parseInt(value);
+                field.value = formatNumber(value);
+            }
+        });
+    };
+
+    function applyFormattingListeners() {
+        ['harga', 'harga_jual', 'total'].forEach(id => {
+            const field = document.getElementById(id);
+            if (field) {
+                field.addEventListener('input', function() {
+                    let value = this.value.replace(/[^\d]/g, '');
+                    this.value = formatNumber(value);
+                });
+            }
+        });
+    }
+
+    function prepareFormSubmission() {
+        const fields = ['harga', 'harga_jual', 'total'];
+        fields.forEach(id => {
+            let field = document.getElementById(id);
+            if (field && field.value) {
+                field.value = field.value.replace(/\./g, '');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        applyFormattingListeners();
+
+        document.getElementById('nama_obat').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            document.getElementById('margin').value = selectedOption.getAttribute('data-margin');
+        });
+
+        document.getElementById('suplier').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            document.getElementById('nohp').value = selectedOption.getAttribute('data-nohp');
+        });
+
+        document.getElementById('form').addEventListener('submit', prepareFormSubmission);
     });
-}
-
-// Pasang event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    applyFormattingListeners();
-
-    document.getElementById('nama_obat').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        document.getElementById('margin').value = selectedOption.getAttribute('data-margin');
-    });
-
-    document.getElementById('suplier').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        document.getElementById('nohp').value = selectedOption.getAttribute('data-nohp');
-    });
-
-    document.getElementById('form').addEventListener('submit', prepareFormSubmission);
-});
-
 </script>
