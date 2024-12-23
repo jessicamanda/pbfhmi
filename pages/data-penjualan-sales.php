@@ -27,6 +27,7 @@ while ($row = $transaksi_produk->fetch_assoc()) {
     $id_penjualan = $row['id_penjualan'];
     if (!isset($data[$id_penjualan])) {
         $data[$id_penjualan] = [
+            'id_penjualan' => $row['id_penjualan'],
             'tgl' => $row['tgl'],
             'no_nota' => $row['no_nota'],
             'nama_pelanggan' => $row['nama_pelanggan'],
@@ -254,7 +255,7 @@ if (isset($_POST['save'])) {
                                             <button type="button" class="btn btn-success btn-add"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#terima"
-                                                data-id="<?php echo htmlspecialchars($id_penjualan); ?>"
+                                                data-id="<?php echo htmlspecialchars($pecah['id_penjualan']); ?>"
                                                 data-tgl="<?php echo htmlspecialchars($pecah['tgl']); ?>"
                                                 data-sisa="<?php echo htmlspecialchars($sisa); ?>">
                                                 Bayar

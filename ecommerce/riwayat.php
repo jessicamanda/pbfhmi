@@ -152,7 +152,7 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                         <button type="button" class="btn btn-success btn-add"
                                             data-bs-toggle="modal"
                                             data-bs-target="#terima"
-                                            data-id="<?= $id_penjualan ?>"
+                                            data-id="<?= $transaksi['id_penjualan'] ?>"
                                             data-tgl="<?= $transaksi['tgl'] ?>"
                                             data-sisa="<?= $sisa ?>">
                                             Bayar
@@ -176,7 +176,7 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                 <input type="hidden" class="form-control" name="id" id="id_penjualan" readonly>
                                 <div>
                                     <label for="tgl" class="form-label">Tanggal Order</label>
-                                    <input type="date" class="form-control" name="tgl" id="tgl" readonly>
+                                    <input type="text" class="form-control" name="tgl" id="tgl" readonly>
                                 </div>
                                 <div>
                                     <label for="tgl_bayar" class="form-label">Tanggal Bayar</label>
