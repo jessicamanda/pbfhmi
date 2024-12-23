@@ -148,16 +148,23 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                                         ?>
 
                                     </td>
-                                    <td>
-                                        <button type="button" class="btn btn-success btn-add"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#terima"
-                                            data-id="<?= $transaksi['id_penjualan'] ?>"
-                                            data-tgl="<?= $transaksi['tgl'] ?>"
-                                            data-sisa="<?= $sisa ?>">
-                                            Bayar
-                                        </button>
-                                    </td>
+                                    <?php if ($sisa != 0): ?>
+                                        <td>
+                                            <button type="button" class="btn btn-success btn-add"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#terima"
+                                                data-id="<?= $transaksi['id_penjualan'] ?>"
+                                                data-tgl="<?= $transaksi['tgl'] ?>"
+                                                data-sisa="<?= $sisa ?>">
+                                                Bayar
+                                            </button>
+                                        </td>
+                                    <?php endif ?>
+                                    <?php if ($sisa === 0): ?>
+                                        <td>
+                                            <h6 style="color: red;"><b>SUDAH LUNAS</b></h6>
+                                        </td>
+                                    <?php endif ?>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -213,7 +220,6 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
             <?php
             if (isset($_POST['save'])) {
                 $nominal = str_replace('.', '', $_POST['nominal']);
-
                 $nominal = (int)$nominal;
                 $id_penjualan = $_POST['id'];
                 $tgl_bayar = $_POST['tgl_bayar'];
@@ -226,17 +232,53 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                 $foto = $_FILES['foto']['name'];
                 $allowed_extensions = ["jpg", "jpeg", "png", "gif", "webp", "heic"];
                 $file_extension = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
+                $file_mime_type = '';
 
-                $lokasi = $_FILES['foto']['tmp_name'];
+                $allowed_mime_types = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'image/webp',
+                    'image/heic'
+                ];
+
                 if (!empty($foto)) {
+                    $file_mime_type = mime_content_type($_FILES['foto']['tmp_name']);
+
+                    if (!in_array($file_extension, $allowed_extensions) || !in_array($file_mime_type, $allowed_mime_types)) {
+                        echo "<script>alert('Hanya file gambar dengan ekstensi JPG, JPEG, PNG, GIF, WebP, atau HEIC yang diizinkan!');</script>";
+                        exit;
+                    }
+
+                    $lokasi = $_FILES['foto']['tmp_name'];
                     move_uploaded_file($lokasi, $folder . '/' . $foto);
+                }
+
+
+                $result = $con->query("SELECT 
+        transaksi.total - COALESCE(SUM(transaksi_pembayaran.nominal), 0) AS sisa_pembayaran
+    FROM 
+        transaksi
+    LEFT JOIN 
+        transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan
+    WHERE 
+        transaksi.id_penjualan = $id_penjualan
+    GROUP BY 
+        transaksi.id_penjualan");
+
+                $row = $result->fetch_assoc();
+                $sisa = $row['sisa_pembayaran'];
+
+                if ($nominal > $sisa) {
+                    echo "<script>alert('Nominal yang dimasukkan melebihi sisa yang harus dibayar!'); window.location.href='index.php?halaman=riwayat';</script>";
+                    exit;
                 }
 
                 if (empty($id_penjualan)) {
                     echo "<script>alert('ID Penjualan tidak ditemukan.');</script>";
                 } else {
                     $query_insert = "INSERT INTO transaksi_pembayaran (id_penjualan, tgl_bayar, nominal, foto) 
-                                     VALUES ('$id_penjualan', '$tgl_bayar', '$nominal', '$foto')";
+                         VALUES ('$id_penjualan', '$tgl_bayar', '$nominal', '$foto')";
                 }
 
                 if ($con->query($query_insert)) {
@@ -245,6 +287,7 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                     echo "<script>alert('Gagal menyimpan data: " . $con->error . "');</script>";
                 }
             }
+
             ?>
             <script>
                 $(document).ready(function() {
@@ -271,6 +314,16 @@ while ($row = $transaksi_pembayaran->fetch_assoc()) {
                     let value = input.value.replace(/\D/g, '');
                     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                     input.value = value;
+                }
+
+                function checkNominal() {
+                    const sisa = parseInt(document.getElementById('sisa').value.replace(/\D/g, '')); // Get the value of sisa (remove commas)
+                    const nominal = parseInt(document.getElementById('nominal').value.replace(/\D/g, '')); // Get the value of nominal (remove commas)
+
+                    if (nominal > sisa) {
+                        alert('Nominal tidak boleh lebih besar dari sisa pembayaran!');
+                        document.getElementById('nominal').value = ''; // Clear the input if it exceeds
+                    }
                 }
             </script>
         </div>

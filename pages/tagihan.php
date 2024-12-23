@@ -207,7 +207,7 @@ while ($row = $ambil->fetch_assoc()) {
                         </div>
                         <form action="" method="post" id="terima_form" enctype="multipart/form-data">
                             <div class="modal-body">
-                                <input type="hidden" class="form-control" name="id" id="id_pembelian" readonly>
+                                <input type="text" class="form-control" name="id" id="id_pembelian" readonly>
                                 <div>
                                     <label for="tgl" class="form-label">Tanggal Order</label>
                                     <input type="date" class="form-control" name="tgl" id="tgl" readonly>

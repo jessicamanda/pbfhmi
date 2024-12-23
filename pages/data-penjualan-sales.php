@@ -68,7 +68,6 @@ if (isset($_POST['save'])) {
     $id_penjualan = $_POST['id'];
     $tgl_bayar = $_POST['tgl_bayar'];
     $nominal = str_replace('.', '', $_POST['nominal']);
-
     $nominal = (int)$nominal;
 
     $folder = "assets/foto/tagihan";
@@ -79,19 +78,50 @@ if (isset($_POST['save'])) {
     $foto = $_FILES['foto']['name'];
     $allowed_extensions = ["jpg", "jpeg", "png", "gif", "webp", "heic"];
     $file_extension = strtolower(pathinfo($foto, PATHINFO_EXTENSION));
+    $file_mime_type = '';
 
-    // if (!in_array($file_extension, $allowed_extensions)) {
-    //     echo "<script>alert('Hanya file JPG atau PNG yang diizinkan!');</script>";
-    //     exit;
-    // }
+    $allowed_mime_types = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/heic'
+    ];
 
-    $lokasi = $_FILES['foto']['tmp_name'];
     if (!empty($foto)) {
+        $file_mime_type = mime_content_type($_FILES['foto']['tmp_name']);
+
+        if (!in_array($file_extension, $allowed_extensions) || !in_array($file_mime_type, $allowed_mime_types)) {
+            echo "<script>alert('Hanya file gambar dengan ekstensi JPG, JPEG, PNG, GIF, WebP, atau HEIC yang diizinkan!');</script>";
+            exit;
+        }
+
+        $lokasi = $_FILES['foto']['tmp_name'];
         move_uploaded_file($lokasi, $folder . '/' . $foto);
     }
 
+    // Query untuk mendapatkan sisa pembayaran
+    $result = $con->query("SELECT 
+        transaksi.total - COALESCE(SUM(transaksi_pembayaran.nominal), 0) AS sisa_pembayaran
+    FROM 
+        transaksi
+    LEFT JOIN 
+        transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan
+    WHERE 
+        transaksi.id_penjualan = $id_penjualan
+    GROUP BY 
+        transaksi.id_penjualan");
+
+    $row = $result->fetch_assoc();
+    $sisa = $row['sisa_pembayaran'];
+
+    if ($nominal > $sisa) {
+        echo "<script>alert('Nominal yang dimasukkan melebihi sisa yang harus dibayar!'); window.location.href='index.php?hal=data-penjualan-sales';</script>";
+        exit;
+    }
+
     $query_insert = "INSERT INTO transaksi_pembayaran (id_penjualan, tgl_bayar, nominal, foto) 
-                        VALUES ('$id_penjualan', '$tgl_bayar', '$nominal', '$foto')";
+    VALUES ('$id_penjualan', '$tgl_bayar', '$nominal', '$foto')";
 
     if ($con->query($query_insert)) {
         echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=data-penjualan-sales';</script>";
@@ -99,6 +129,7 @@ if (isset($_POST['save'])) {
         echo "<script>alert('Gagal menyimpan data: " . $con->error . "');</script>";
     }
 }
+
 ?>
 
 <style>
@@ -155,7 +186,7 @@ if (isset($_POST['save'])) {
                             <?php
                             $no = 1;
                             $nomer = 1;
-                            foreach ($data as $pecah){
+                            foreach ($data as $pecah) {
                                 $sisa = $pecah['total'];
                                 if (!empty($pecah['pembayaran'])) {
                                     foreach ($pecah['pembayaran'] as $terima) {
@@ -167,7 +198,7 @@ if (isset($_POST['save'])) {
                                     $status = 'Lunas';
                                 } else {
                                     $status = 'Belum Lunas';
-                                } 
+                                }
                             ?>
                                 <tr>
                                     <td><?php echo $no++; ?></td>
@@ -251,16 +282,24 @@ if (isset($_POST['save'])) {
                                             }
                                             ?>
                                         </td>
-                                        <td>
-                                            <button type="button" class="btn btn-success btn-add"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#terima"
-                                                data-id="<?php echo htmlspecialchars($pecah['id_penjualan']); ?>"
-                                                data-tgl="<?php echo htmlspecialchars($pecah['tgl']); ?>"
-                                                data-sisa="<?php echo htmlspecialchars($sisa); ?>">
-                                                Bayar
-                                            </button>
-                                        </td>
+                                        <?php if ($sisa != 0): ?>
+                                            <td>
+                                                <button type="button" class="btn btn-success btn-add"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#terima"
+                                                    data-id="<?php echo htmlspecialchars($pecah['id_penjualan']); ?>"
+                                                    data-tgl="<?php echo htmlspecialchars($pecah['tgl']); ?>"
+                                                    data-sisa="<?php echo htmlspecialchars($sisa); ?>">
+                                                    Bayar
+                                                </button>
+                                            </td>
+                                        <?php endif ?>
+
+                                        <?php if ($sisa === 0): ?>
+                                            <td>
+                                                <h6 style="color: red;"><b>SUDAH LUNAS</b></h6>
+                                            </td>
+                                        <?php endif ?>
                                     <?php endif ?>
                                 </tr>
                             <?php } ?>
@@ -331,6 +370,16 @@ if (isset($_POST['save'])) {
                     let value = input.value.replace(/\D/g, '');
                     value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
                     input.value = value;
+                }
+
+                function checkNominal() {
+                    const sisa = parseInt(document.getElementById('sisa').value.replace(/\D/g, '')); // Get the value of sisa (remove commas)
+                    const nominal = parseInt(document.getElementById('nominal').value.replace(/\D/g, '')); // Get the value of nominal (remove commas)
+
+                    if (nominal > sisa) {
+                        alert('Nominal tidak boleh lebih besar dari sisa pembayaran!');
+                        document.getElementById('nominal').value = ''; // Clear the input if it exceeds
+                    }
                 }
             </script>
         </div>
