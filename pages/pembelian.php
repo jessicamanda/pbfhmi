@@ -13,6 +13,7 @@ $harga = "";
 $jumlah = "";
 $ppn = "";
 $total = "";
+$margin = "";
 $harga_jual = "";
 $tgl_exp = "";
 $no_batch = "";
@@ -30,6 +31,7 @@ if (isset($_GET['edit'])) {
         $harga = $pecah['harga'];
         $jumlah = $pecah['jumlah'];
         $ppn = $pecah['ppn'];
+        $margin = $pecah['margin'];
         $total = $pecah['total'];
         $harga_jual = $pecah['harga_jual'];
         $jatuh_tempo = $pecah['jatuh_tempo'];
@@ -73,7 +75,7 @@ if (isset($_POST['save'])) {
         $query = "INSERT INTO pembelian 
                     (tgl, nama_obat, namasuplier, nohp, harga, ppn, total, tgl_exp, no_batch, tipe, harga_jual,status, jumlah, jatuh_tempo, created_at, updated_at) 
                   VALUES 
-                    ('$tgl', '$nama_obat', '$final_suplier', '$final_nohp', '$harga', '$ppn', '$total', '$tgl_exp', '$no_batch', '$tipe', '$status','$status', '$jumlah', '$jatuh_tempo', '$created_at', '$updated_at')";
+                    ('$tgl', '$nama_obat', '$final_suplier', '$final_nohp', '$harga', '$ppn', '$total', '$tgl_exp', '$no_batch', '$tipe', '$harga_jual','$status', '$jumlah', '$jatuh_tempo', '$created_at', '$updated_at')";
         if ($con->query($query)) {
             echo "<script>alert('Data berhasil ditambahkan'); document.location.href='index.php?hal=pembelian';</script>";
         } else {
@@ -127,19 +129,27 @@ if (isset($_GET['delete'])) {
                             <div class="">
                                 <label for="nama_obat" class="form-label">Obat</label>
                                 <div class="input-group">
-                                    <select name="nama_obat" class="form-control" required>
+                                    <select name="nama_obat" class="form-control" id="nama_obat" required>
                                         <option value="" disabled selected>Pilih Nama Obat</option>
                                         <?php
                                         $ambil = $con->query("SELECT * FROM obat");
                                         while ($pecah = $ambil->fetch_assoc()) {
                                             $selected = ($pecah['nama_obat'] == $nama_obat) ? 'selected' : '';
                                             echo '<option value="' . $pecah['nama_obat'] . '" ' . $selected . '>' . $pecah['nama_obat'] . '</option>';
-                                        }
                                         ?>
+                                            <option value="<?php echo $pecah['nama_obat']; ?>" data-margin="<?php echo $pecah['margin']; ?>"><?php echo $pecah['nama_obat']; ?></option>
+                                        <?php } ?>
                                     </select>
+
                                 </div>
                             </div>
 
+                        </div>
+                        <div class="">
+                            <label for="" class="form-label">Margin Obat</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="margin" id="margin" oninput="formatNumber(this); calculateTotal()" value="<?= htmlspecialchars($margin); ?>" readonly>
+                            </div>
                         </div>
                         <div class="">
                             <label for="" class="form-label">PPN per gram atau buah (dalam %)</label>
@@ -168,6 +178,7 @@ if (isset($_GET['delete'])) {
                                 <input type="text" class="form-control" name="total" id="total" value="<?= htmlspecialchars($total); ?>" readonly>
                             </div>
                         </div>
+
                         <div class="">
                             <label for="harga_jual" class="form-label">Harga Jual</label>
                             <div class="input-group">
@@ -212,7 +223,7 @@ if (isset($_GET['delete'])) {
                             <div class="row">
                                 <div class="col-6">
                                     <div class="input-group">
-                                        <input type="text" name="nohp" class="form-control" id="nohp" placeholder="No HP suplier" value="<?= htmlspecialchars($nohp); ?>"  readonly>
+                                        <input type="text" name="nohp" class="form-control" id="nohp" placeholder="No HP suplier" value="<?= htmlspecialchars($nohp); ?>" readonly>
                                     </div>
                                 </div>
                                 <div class="col-6">
@@ -332,50 +343,97 @@ if (isset($_GET['delete'])) {
         </div>
     </div>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
 <script>
-    function calculateTotal() {
-        let harga = document.getElementById('harga').value.replace(/\./g, '');
+// Format angka dengan menambahkan titik sebagai pemisah ribuan
+function formatNumber(number) {
+    if (isNaN(number)) return '';
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
 
-        var jumlah = parseInt(document.getElementById("jumlah").value);
-        harga = parseInt(harga);
-        var ppn = parseInt(document.getElementById("ppn").value);
+// Ambil nilai bersih dari input (tanpa titik)
+function getCleanValue(id) {
+    const field = document.getElementById(id);
+    if (field && field.value) {
+        return parseInt(field.value.replace(/\./g, '')) || 0;
+    }
+    return 0;
+}
 
-        if (!harga || isNaN(harga) || !jumlah || isNaN(jumlah) || !ppn || isNaN(ppn)) {
-            document.getElementById("total").value = '';
-            return;
+// Hitung total dan harga jual
+function calculateTotal() {
+    let harga = getCleanValue('harga');
+    let jumlah = getCleanValue('jumlah');
+    let ppn = getCleanValue('ppn');
+    let margin = getCleanValue('margin');
+
+    if (!harga || !jumlah || !ppn) {
+        document.getElementById("total").value = '';
+        return;
+    }
+
+    let pajaksub = harga * ppn / 100;
+    let pajak = harga + pajaksub;
+    let harga_jual = pajak * (margin / 100);
+    let total = pajak * jumlah;
+
+    document.getElementById("total").value = formatNumber(total);
+    document.getElementById("harga_jual").value = formatNumber(harga_jual);
+}
+
+// Terapkan format angka pada input saat halaman dimuat
+window.onload = function() {
+    const fieldsToFormat = ['harga', 'harga_jual', 'total'];
+    fieldsToFormat.forEach(id => {
+        let field = document.getElementById(id);
+        if (field && field.value) {
+            let value = field.value.replace(/\./g, '');
+            value = parseInt(value);
+            field.value = formatNumber(value);
         }
+    });
+};
 
-        var sub = jumlah * harga;
-        var pajaksub = harga * ppn / 100;
-        var pajak = jumlah * pajaksub;
-        var total = sub + pajak;
-        var harga_jual = total / jumlah;
+// Terapkan pemformatan angka pada input
+function applyFormattingListeners() {
+    ['harga', 'harga_jual', 'total'].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.addEventListener('input', function() {
+                let value = this.value.replace(/[^\d]/g, '');
+                this.value = formatNumber(value);
+            });
+        }
+    });
+}
 
-        document.getElementById("total").value = formatNumber(total);
-        document.getElementById("harga_jual").value = formatNumber(harga_jual);
-    }
+// Persiapkan data sebelum dikirim ke server
+function prepareFormSubmission() {
+    const fields = ['harga', 'harga_jual', 'total'];
+    fields.forEach(id => {
+        let field = document.getElementById(id);
+        if (field && field.value) {
+            field.value = field.value.replace(/\./g, '');
+        }
+    });
+}
 
-    function formatNumber(number) {
-        if (isNaN(number)) return '';
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
+// Pasang event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    applyFormattingListeners();
+
+    document.getElementById('nama_obat').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('margin').value = selectedOption.getAttribute('data-margin');
+    });
 
     document.getElementById('suplier').addEventListener('change', function() {
-        var selectedOption = this.options[this.selectedIndex];
-        var nohp = selectedOption.getAttribute('data-nohp');
-        document.getElementById('nohp').value = nohp;
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('nohp').value = selectedOption.getAttribute('data-nohp');
     });
 
-    document.getElementById('harga').addEventListener('input', function() {
-        let value = this.value.replace(/[^\d]/g, '');
-        this.value = formatNumber(value);
-    });
+    document.getElementById('form').addEventListener('submit', prepareFormSubmission);
+});
 
-    window.onload = function() {
-        let total = document.getElementById('total').value;
-        total = total.replace(/\./g, '');
-        total = parseInt(total);
-        document.getElementById('total').value = formatNumber(total);
-    }
 </script>
