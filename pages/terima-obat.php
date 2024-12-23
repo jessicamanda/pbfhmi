@@ -63,15 +63,26 @@ if (isset($_POST['save'])) {
 </style>
 
 <?php
+// $ambil = $con->query("SELECT 
+//     pembelian.id_pembelian, pembelian.jumlah, pembelian.namasuplier, pembelian.nama_obat, 
+//     terima.tgl_terima, pembelian.tgl, terima.id_tempat, terima.jumlah_terima, COALESCE(SUM(terima.jumlah_terima), 0) AS total
+// FROM pembelian 
+// LEFT JOIN terima ON pembelian.id_pembelian = terima.id_pembelian
+// GROUP BY pembelian.id_pembelian
+// HAVING (pembelian.jumlah - total) > 0
+// ORDER BY pembelian.id_pembelian;
+//     ");
+
 $ambil = $con->query("SELECT 
     pembelian.id_pembelian, pembelian.jumlah, pembelian.namasuplier, pembelian.nama_obat, 
-    terima.tgl_terima, pembelian.tgl, terima.id_tempat, terima.jumlah_terima, COALESCE(SUM(terima.jumlah_terima), 0) AS total
+    terima.tgl_terima, pembelian.tgl, terima.id_tempat, terima.jumlah_terima
 FROM pembelian 
-LEFT JOIN terima ON pembelian.id_pembelian = terima.id_pembelian
-GROUP BY pembelian.id_pembelian
-HAVING (pembelian.jumlah - total) > 0
-ORDER BY pembelian.id_pembelian;
-    ");
+    LEFT JOIN terima ON pembelian.id_pembelian = terima.id_pembelian
+WHERE (pembelian.jumlah - (SELECT COALESCE(SUM(terima.jumlah_terima), 0) 
+                       FROM terima 
+                       WHERE terima.id_pembelian = pembelian.id_pembelian)) > 0
+ORDER BY pembelian.id_pembelian, terima.tgl_terima;
+");
 
 $data = [];
 while ($row = $ambil->fetch_assoc()) {
@@ -99,7 +110,7 @@ while ($row = $ambil->fetch_assoc()) {
     <div class="col-12">
         <div class="card mb-4">
             <div class="card-header pb-0">
-                <h6>Daftar Pembelian</h6>
+                <h6>Daftar Pembelian Yang Harus Diterima</h6>
             </div>
             <div class="card shadow p-2">
                 <div class="table-responsive">
@@ -164,7 +175,8 @@ while ($row = $ambil->fetch_assoc()) {
                                             data-id="<?php echo htmlspecialchars($id_pembelian); ?>"
                                             data-nama_obat="<?php echo htmlspecialchars($item['nama_obat']); ?>"
                                             data-tgl="<?php echo htmlspecialchars($item['tgl']); ?>"
-                                            data-jumlah="<?php echo htmlspecialchars($item['jumlah']); ?>">
+                                            data-jumlah="<?php echo htmlspecialchars($item['jumlah']); ?>"
+                                            data-sisa="<?php echo htmlspecialchars($sisa); ?>">
                                             Terima
                                         </button>
                                     </td>
@@ -196,11 +208,15 @@ while ($row = $ambil->fetch_assoc()) {
                                     <input type="text" class="form-control" name="jumlah" id="jumlah" readonly>
                                 </div>
                                 <div>
+                                    <label for="sisa" class="form-label">Yang harus diterima</label>
+                                    <input type="text" class="form-control" name="sisa" id="sisa" readonly>
+                                </div>
+                                <div>
                                     <label for="tgl_terima" class="form-label">Tanggal terima</label>
                                     <input type="date" class="form-control" name="tgl_terima" id="tgl_terima" value="<?php echo date('Y-m-d'); ?>" required>
                                 </div>
                                 <div>
-                                    <label for="jumlah_terima" class="form-label">jumlah terima</label>
+                                    <label for="jumlah_terima" class="form-label">Jumlah terima</label>
                                     <input type="text" class="form-control" name="jumlah_terima" id="jumlah_terima" required>
                                 </div>
                                 <div>
@@ -221,7 +237,7 @@ while ($row = $ambil->fetch_assoc()) {
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                                 <button type="submit" class="btn btn-primary" name="save">Simpan Data</button>
                             </div>
                         </form>
@@ -238,6 +254,7 @@ while ($row = $ambil->fetch_assoc()) {
                         $('#nama_obat').val($(this).data('nama_obat'));
                         $('#jumlah').val($(this).data('jumlah'));
                         $('#tgl_terima').val('<?php echo date('Y-m-d'); ?>');
+                        $('#sisa').val(new Intl.NumberFormat('id-ID').format($(this).data('sisa')));
                     });
                 });
             </script>

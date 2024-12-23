@@ -15,6 +15,9 @@
                         <thead>
                             <tr>
                                 <th>No</th>
+                                <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                    <th>Nama Karyawan</th>
+                                <?php endif; ?>
                                 <th>Tanggal Absen</th>
                                 <th>Jam Kerja</th>
                                 <th>Jam Pulang</th>
@@ -27,10 +30,17 @@
                             <?php
                             $nama_lengkap = mysqli_real_escape_string($con, $nama_lengkap);
                             $ambil = $con->query("SELECT * FROM absensi_pulang WHERE nama_lengkap = '$nama_lengkap'");
+                            if ($_SESSION['admin']['role'] === 'ceo'):
+                                $ambil = $con->query("SELECT * FROM absensi_pulang");
+                            endif;
                             $no = 1;
                             while ($pecah = $ambil->fetch_assoc()) { ?>
                                 <tr>
                                     <td><?php echo $no++; ?></td>
+                                    <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                        <td><?php echo $pecah["nama_lengkap"]; ?></td>
+                                    <?php endif;
+                                    ?>
                                     <td><?php echo $pecah["tanggal_absen_plg"]; ?></td>
                                     <td><?php echo $pecah["jam_kerja"]; ?></td>
                                     <td><?php echo $pecah["jam_pulang"]; ?></td>

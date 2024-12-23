@@ -118,26 +118,32 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <select name="nama_obat" class="form-control" id="nama_obat" required>
                                 <option value="" disabled selected>Pilih Nama Obat</option>
                                 <?php
-                                $ambil = $con->query("SELECT pembelian.nama_obat, stok.stok, pembelian.harga_jual
-                                FROM pembelian
-                                JOIN stok ON pembelian.nama_obat = stok.nama_obat
-                                WHERE pembelian.status = 'Sudah Datang'
-                                AND pembelian.created_at = (
-                                    SELECT MAX(created_at)
-                                    FROM pembelian AS harga_jual_terakhir
-                                    WHERE harga_jual_terakhir.nama_obat = pembelian.nama_obat
-                                )
-                                ORDER BY pembelian.nama_obat ASC
-                                ");
-                                while ($pecah = $ambil->fetch_assoc()) {
-                                ?>
-                                    <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga_jual']; ?>"><?php echo $pecah['nama_obat']; ?></option>
-                                <?php } ?>
+$ambil = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok 
+FROM obat 
+LEFT JOIN stok ON obat.nama_obat = stok.nama_obat 
+LEFT JOIN (
+    SELECT p1.* 
+    FROM pembelian p1 
+    WHERE p1.created_at = (
+        SELECT MAX(p2.created_at) 
+        FROM pembelian p2 
+        WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang'
+    )
+) AS pembelian ON obat.nama_obat = pembelian.nama_obat 
+ORDER BY obat.id DESC");
+while ($pecah = $ambil->fetch_assoc()) {
+?>
+    <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga_terbaru']; ?>"><?php echo $pecah['nama_obat']; ?></option>
+<?php } ?>
+
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="harga" class="form-label">Harga</label>
-                            <input type="number" name="harga" class="form-control" id="harga" readonly>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" name="harga" class="form-control" id="harga" readonly>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-6">
@@ -156,7 +162,10 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
 
                         <div class="mb-3">
                             <label for="sub_total" class="form-label">Sub Harga</label>
-                            <input type="text" name="sub_total" class="form-control" id="sub_total" readonly>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="text" name="sub_total" class="form-control" id="sub_total" readonly>
+                            </div>
                         </div>
                         <button type="submit" oninput="calculateTotal()" class="btn btn-primary" name="keranjang">Tambah Ke Keranjang</button>
                     </div>

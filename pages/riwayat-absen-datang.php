@@ -15,6 +15,9 @@
                         <thead>
                             <tr>
                                 <th>No</th>
+                                <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                    <th>Nama Karyawan</th>
+                                <?php endif; ?>
                                 <th>Tanggal Absen</th>
                                 <th>Jam Kerja</th>
                                 <th>Jam Masuk</th>
@@ -27,16 +30,23 @@
                             <?php
                             $nama_lengkap = mysqli_real_escape_string($con, $nama_lengkap);
                             $ambil = $con->query("SELECT * FROM absensi WHERE nama_karyawan = '$nama_lengkap'");
+                            if ($_SESSION['admin']['role'] === 'ceo'):
+                                $ambil = $con->query("SELECT * FROM absensi");
+                            endif;
                             $no = 1;
                             while ($pecah = $ambil->fetch_assoc()) { ?>
                                 <tr>
                                     <td><?php echo $no++; ?></td>
+                                    <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
+                                        <td><?php echo $pecah["nama_karyawan"]; ?></td>
+                                    <?php endif;
+                                    ?>
                                     <td><?php echo $pecah["tanggal_absen"]; ?></td>
                                     <td><?php echo $pecah["jam_kerja"]; ?></td>
                                     <td><?php echo $pecah["jam_masuk"]; ?></td>
                                     <td><?php echo $pecah["status_masuk"]; ?></td>
                                     <td>
-                                    <img src="assets/foto/absensi/<?php echo $pecah["foto_absen"]; ?>" alt="Foto Absen" width="100" />
+                                        <img src="assets/foto/absensi/<?php echo $pecah["foto_absen"]; ?>" alt="Foto Absen" width="100" />
                                     </td>
                                     <td>
                                         <a href="https://www.google.com/maps/place/<?php echo $pecah["latitude"]; ?>,<?php echo $pecah["longitude"]; ?>" target="_blank">Lihat Maps</a>

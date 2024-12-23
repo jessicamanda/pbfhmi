@@ -6,7 +6,7 @@
     <div class="col-12">
         <div class="card mb-4">
             <div class="card-header pb-0">
-                <h6>Daftar Pembelian</h6>
+                <h6>Daftar Exp Terdekat</h6>
             </div>
             <div class="card shadow p-2">
                 <div class="table-responsive">
@@ -27,7 +27,7 @@
                                 <th>Tanggal Expired</th>
                                 <th>No Batch</th>
                                 <th>Status</th>
-                                <th>Aksi</th>
+                                <!-- <th>Aksi</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -50,7 +50,7 @@
                                     <td><?php echo $pecah["tgl_exp"]; ?></td>
                                     <td><?php echo $pecah["no_batch"]; ?></td>
                                     <td><?php echo $pecah["status"]; ?></td>
-                                    <td>
+                                    <!-- <td>
                                         <a href="index.php?hal=pembelian&edit=<?php echo $pecah['id_pembelian']; ?>" class="btn btn-primary btn-edit">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
@@ -59,7 +59,7 @@
                                                 <i class="bi bi-trash text-white"></i>
                                             </a>
                                         </button>
-                                    </td>
+                                    </td> -->
 
                                 </tr>
                             <?php } ?>

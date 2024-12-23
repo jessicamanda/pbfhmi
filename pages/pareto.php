@@ -27,7 +27,7 @@
                                 <th>Tanggal Expired</th>
                                 <th>No Batch</th>
                                 <th>Status</th>
-                                <th>Aksi</th>
+                                <!-- <th>Aksi</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -50,7 +50,7 @@
                                     <td><?php echo $pecah["tgl_exp"]; ?></td>
                                     <td><?php echo $pecah["no_batch"]; ?></td>
                                     <td><?php echo $pecah["status"]; ?></td>
-                                    <td>
+                                    <!-- <td>
                                         <a href="index.php?hal=pembelian&edit=<?php echo $pecah['id_pembelian']; ?>" class="btn btn-primary btn-edit">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
@@ -59,7 +59,7 @@
                                                 <i class="bi bi-trash text-white"></i>
                                             </a>
                                         </button>
-                                    </td>
+                                    </td> -->
 
                                 </tr>
                             <?php } ?>
