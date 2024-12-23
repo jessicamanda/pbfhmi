@@ -2,8 +2,7 @@
 
 $id = htmlspecialchars($_GET['id_obat']);
 if (isset($_SESSION['admin']['nama_lengkap'])) {
-  $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, obat.deskripsi, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.namasuplier, pembelian.nohp, pembelian.harga, pembelian.tipe, pembelian.jatuh_tempo, pembelian.tgl_exp, pembelian.no_batch, pembelian.status, stok.stok,
-                            stok.id AS stok_id FROM obat LEFT JOIN pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat WHERE obat.id = '" . htmlspecialchars($_GET['id_obat']) . "'");
+  $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.deskripsi, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.id  = '" . htmlspecialchars($_GET['id_obat']) . "'");
   $product = $products->fetch_assoc();
 } else {
   echo "
@@ -29,7 +28,7 @@ if (isset($_SESSION['admin']['nama_lengkap'])) {
           <h4 class="card-title"><strong>Detail Produk</strong></h4>
           <p class="card-text"><strong>Nama produk:</strong><br> <?= $product['nama_obat'] ?></p>
           <p class="card-text"><strong>Deskripsi:</strong><br> <?= $product['deskripsi'] ?></p>
-          <p class="card-text"><strong>Harga:</strong><br> Rp. <?= number_format($product['harga'], 0, ',', '.') ?>,00</p>
+          <p class="card-text"><strong>Harga:</strong><br> Rp. <?= number_format($product['harga_terbaru'], 0, ',', '.') ?>,00</p>
           <p class="card-text"><strong>Stok:</strong> <?= $product['stok'] ?></p>
           <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addToCartModal<?= $product['id_obat'] ?>">+ Keranjang</button>
         </div>
@@ -52,7 +51,7 @@ if (isset($_SESSION['admin']['nama_lengkap'])) {
       <form method="POST" action="index.php?halaman=shop&add=<?= $product['id_obat'] ?>">
         <div class="modal-body">
           <p>Produk: <strong><?= $product['nama_obat'] ?></strong></p>
-          <p>Harga: <strong>Rp <?= number_format($product['harga'], 0, '', '.') ?></strong></p>
+          <p>Harga: <strong>Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></strong></p>
           <div class="mb-3">
             <label for="quantity<?= $product['id_obat'] ?>" class="form-label">Jumlah</label>
             <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min="1" max=<?= $product['stok'] ?> required>

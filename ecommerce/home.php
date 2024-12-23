@@ -80,13 +80,10 @@
 <hr><br>
 <section class="ca-1">
   <h3 class="mb-4">Produk Terbaru</h3>
-  <span>
-    <?= print_r($_SESSION['admin'])?>
-  </span>
   <div class="row">
     <div class="owl-carousel owl-theme">
       <?php
-      $getProd1 = $con->query("SELECT obat.id, obat.nama_obat, obat.foto, obat.margin, stok.stok, pembelian.harga AS harga_terbaru FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT nama_obat, harga FROM pembelian WHERE created_at = (SELECT MAX(created_at) FROM pembelian AS p WHERE p.nama_obat = pembelian.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.created_at DESC;");
+      $getProd1 = $con->query("SELECT obat.id, obat.nama_obat, obat.foto, obat.margin, stok.stok, pembelian.harga_jual AS harga_terbaru FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT nama_obat, harga_jual FROM pembelian WHERE created_at = (SELECT MAX(created_at) FROM pembelian AS p WHERE p.nama_obat = pembelian.nama_obat AND p.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.created_at DESC;");
       foreach ($getProd1 as $prod1) {
       ?>
         <div class="card h-100 shadow-sm">
@@ -94,7 +91,7 @@
           <div class="card-body">
             <h6 class="card-title mb-1"><?= $prod1['nama_obat'] ?></h6>
             <p class="card-text" style="margin-top: -8px;">
-            <h3 class="mt-1">Rp. <?= number_format($prod1['harga_terbaru'] + ($prod1['harga_terbaru'] * $prod1['margin'] / 100), 0, '', '.') ?></h3>
+            <h3 class="mt-1">Rp. <?= number_format($prod1['harga_terbaru'], 0, '', '.') ?></h3>
             <h6 class="mt-1 text-muted">Stok <?= $prod1['stok'] ?></h6>
             <a href="index.php?halaman=detail_produk&id_obat=<?= $prod1['id'] ?>" class="stretched-link"></a>
             </p>
@@ -111,7 +108,7 @@
   <div class="row">
     <div class="owl-carousel owl-theme">
       <?php
-      $getProd1 = $con->query("SELECT obat.id, obat.nama_obat, obat.foto, obat.margin, stok.stok, pembelian.harga AS harga_terbaru FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT nama_obat, harga FROM pembelian WHERE created_at = (SELECT MAX(created_at) FROM pembelian AS p WHERE p.nama_obat = pembelian.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.created_at DESC;");
+      $getProd1 = $con->query("SELECT obat.id, obat.nama_obat, obat.foto, obat.margin, stok.stok, pembelian.harga_jual AS harga_terbaru FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT nama_obat, harga_jual FROM pembelian WHERE created_at = (SELECT MAX(created_at) FROM pembelian AS p WHERE p.nama_obat = pembelian.nama_obat AND p.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.created_at DESC;");
       foreach ($getProd1 as $prod1) {
       ?>
         <div class="card h-100 shadow-sm">
@@ -119,7 +116,7 @@
           <div class="card-body">
             <h6 class="card-title mb-1"><?= $prod1['nama_obat'] ?></h6>
             <p class="card-text" style="margin-top: -8px;">
-            <h3 class="mt-1">Rp. <?= number_format($prod1['harga_terbaru'] + ($prod1['harga_terbaru'] * $prod1['margin'] / 100), 0, '', '.') ?></h3>
+            <h3 class="mt-1">Rp. <?= number_format($prod1['harga_terbaru'], 0, '', '.') ?></h3>
             <h6 class="mt-1 text-muted">Stok <?= $prod1['stok'] ?></h6>
             <a href="index.php?halaman=detail_produk&id_obat=<?= $prod1['id'] ?>" class="stretched-link"></a>
             </p>
@@ -131,34 +128,6 @@
 </section>
 <br>
 <hr><br>
-<!-- <div class="card shadow p-3 text-light" style="background: #0F5220; background: linear-gradient(90deg, rgba(12,223,103,1) 0%, rgba(15, 82, 32) 100%);">
-    <center>
-    <b>Sistem Informasi Manajemen Perdagangan Besar Farmasi Husada Mulia Indonesia</b>
-    </center>
-    <br><br>
-    <div class="row">
-        <div class="col-md-4">
-            <center class="mb-3">
-            <h1><b>300+</b></h1>
-            <b>Produk Terjual</b>
-            </center>
-        </div>
-        <div class="col-md-4">
-            <center class="mb-3">
-            <h1><b>150+</b></h1>
-            <b>Obat</b>
-            </center>
-
-        </div>
-        <div class="col-md-4">
-            <center class="mb-3">
-            <h1><b>100+</b></h1>
-            <b>Pembeli</b>
-            </center>
-        </div>
-    </div>
-</div> -->
-
 <div style="background-color: #08592F; color: #fff;">
   <footer class="row px-3 py-4" style="width: 100%; font-size: 13px;">
     <!-- Bagian Layanan Pengaduan Konsumen -->

@@ -1,9 +1,9 @@
 <?php
 if (isset($_SESSION['admin'])) {
     $id_user = $_SESSION['admin']['id'];
-    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.created_at AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_user ORDER BY obat.created_at DESC;");
+    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.created_at AS tanggal_pembelian, pembelian.harga_jual AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_user ORDER BY obat.created_at DESC;");
 } else {
-    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.created_at AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.jumlah, pembelian.created_at_exp, pembelian.no_batch, pembelian.status, stok.stok, stok.id AS stok_id FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY  obat.created_at DESC LIMIT 0;");
+    $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.created_at AS tanggal_pembelian, pembelian.harga_jual AS harga_terbaru, pembelian.jumlah, pembelian.created_at, pembelian.no_batch, pembelian.status, stok.stok, stok.id AS stok_id FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY  obat.created_at DESC LIMIT 0;");
 }
 
 ?>
@@ -93,15 +93,15 @@ if (isset($_SESSION['admin'])) {
 
                     //   Pagination
                     if (isset($_POST['keyword'])) {
-                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY obat.id DESC");
+                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY obat.id DESC");
                     } elseif (isset($_POST['filter'])) {
                         if ($_POST['fil'] == 'Tinggi') {
-                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru DESC");
+                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru DESC");
                         } elseif ($_POST['fil'] == 'Rendah') {
-                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru ASC");
+                            $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru ASC");
                         }
                     } else {
-                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.id DESC");
+                        $result = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.id DESC");
                     }
                     // Parameters for pagination
                     $limit = 10; // Number of entries to show in a page
@@ -124,15 +124,15 @@ if (isset($_SESSION['admin'])) {
                     // End Pagination
 
                     if (isset($_POST['keyword'])) {
-                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY obat.id DESC LIMIT $start, $limit;");
+                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.nama_obat LIKE '%$_POST[keyword]%' ORDER BY obat.id DESC LIMIT $start, $limit;");
                     } elseif (isset($_POST['filter'])) {
                         if ($_POST['fil'] == 'Tinggi') {
-                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru DESC LIMIT $start, $limit;");
+                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru DESC LIMIT $start, $limit;");
                         } elseif ($_POST['fil'] == 'Rendah') {
-                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru ASC LIMIT $start, $limit;");
+                            $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY harga_terbaru ASC LIMIT $start, $limit;");
                         }
                     } else {
-                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.id DESC LIMIT $start, $limit;");
+                        $products = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat ORDER BY obat.id DESC LIMIT $start, $limit;");
                         
                         // $products = $con->query("SELECT *,  FROM stok INNER JOIN pembelian ON pembelian.nama_obat = stok.nama_obat ORDER BY pembelian.created_at DESC LIMIT $start, $limit;");
                     }
@@ -148,7 +148,7 @@ if (isset($_SESSION['admin'])) {
                                 </a>
                                 <div class="card-body p-2">
                                     <h6 class="card-title"><?= $product['nama_obat'] ?></h6>
-                                    <h5 class="card-text text-success">Rp <?= number_format($product['harga_terbaru'] + ($product['harga_terbaru'] * $product['margin'] / 100), 0, '', '.') ?></h5>
+                                    <h5 class="card-text text-success">Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></h5>
                                     <p class="mt-1 text-muted">Stok <?= $product['stok'] ?></p>
                                     <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addToCartModal<?= $product['id_obat'] ?>">+ Keranjang</button>
                                 </div>
@@ -165,7 +165,7 @@ if (isset($_SESSION['admin'])) {
                                     <form method="POST" action="index.php?halaman=shop&add=<?= $product['id_obat'] ?>">
                                         <div class="modal-body">
                                             <p>Produk: <strong><?= $product['nama_obat'] ?></strong></p>
-                                            <p>Harga: <strong>Rp <?= number_format($product['harga_terbaru'] + ($product['harga_terbaru'] * $product['margin'] / 100), 0, '', '.') ?></strong></p>
+                                            <p>Harga: <strong>Rp <?= number_format($product['harga_terbaru'], 0, '', '.') ?></strong></p>
                                             <div class="mb-3">
                                                 <label for="quantity<?= $product['id_obat'] ?>" class="form-label">Jumlah</label>
                                                 <input type="number" class="form-control" name="jumlah" id="quantity<?= $product['id_obat'] ?>" value="1" min=1 max=<?= $product['stok'] ?> required>
@@ -186,14 +186,14 @@ if (isset($_SESSION['admin'])) {
             <?php
             if (isset($_GET['add'])) {
                 if (isset($_SESSION['admin']['nama_lengkap'])) {
-                    $getProd = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.id = '" . htmlspecialchars($_GET['add']) . "'")->fetch_assoc();
+                    $getProd = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat WHERE obat.id = '" . htmlspecialchars($_GET['add']) . "'")->fetch_assoc();
                     $user_id = $_SESSION['admin']['id'];
                     $nama_lengkap = $_SESSION['admin']['nama_lengkap'];
                     $id_obat = $getProd['id_obat'];
                     $nama_obat = $getProd['nama_obat'];
-                    $harga = $getProd['harga_terbaru'] + ($getProd['harga_terbaru'] * $getProd['margin'] / 100);
+                    $harga = $getProd['harga_terbaru'] ;
                     $jumlah = isset($_POST['jumlah']) ? $_POST['jumlah'] : 1;
-                    $sub_harga = 1 * ($getProd['harga_terbaru'] + ($getProd['harga_terbaru'] * $getProd['margin'] / 100));
+                    $sub_harga = 1 * $getProd['harga_terbaru'];
 
                     $con->query("INSERT INTO keranjang (user_id, nama_lengkap, id_obat, nama_obat, harga, jumlah, sub_harga) VALUES ('$user_id', '$nama_lengkap', '$id_obat', '$nama_obat', '$harga', '$jumlah', '$sub_harga')");
 

@@ -64,8 +64,13 @@
                   $username = htmlspecialchars($_POST['username']);
                   $password = htmlspecialchars($_POST['password']);
 
+                  $result = $con->query("SELECT * FROM user WHERE username='$username'");
+                  if ($result->num_rows > 0) {
+                  echo "<script>alert('Username sudah digunakan');</script>";
+                  } else {
                   $con->query("INSERT INTO user (nama_lengkap, nohp, username, password, role) VALUES ('$nama_lengkap','$nohp', '$username','$password', 'pelanggan')");
                   echo "<script>alert('User berhasil disimpan'); document.location.href='./login-customer.php';</script>";
+                  }
                 }
                 ?>
               </div>

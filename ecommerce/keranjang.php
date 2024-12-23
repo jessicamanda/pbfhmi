@@ -441,44 +441,54 @@
                         </script>
                         <?php
                         if (isset($_POST['co'])) {
-                            $getCart = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.harga AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat)) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_pelanggan ");
-                            $code_nota = date('YmdHis') . $_SESSION['admin']['id'];
-                            $user_id = $_SESSION['admin']['id'];
-                            $instansi = htmlspecialchars($_POST['instansi']);
+                            $getCart = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.tgl AS tanggal_pembelian, pembelian.harga_jual AS harga_terbaru, pembelian.status, stok.stok, stok.id AS stok_id, keranjang.user_id, keranjang.jumlah, keranjang.sub_harga FROM obat LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat LEFT JOIN keranjang ON obat.id = keranjang.id_obat WHERE keranjang.user_id = $id_pelanggan ");
+                            
+                            if ($getCart->num_rows == 0) {
+                                echo "
+                                    <script>
+                                        alert('Keranjang masih kosong, harap tambahkan produk terlebih dahulu');
+                                        document.location.href='index.php?halaman=shop';
+                                    </script>
+                                ";
+                            } else {
+                                $code_nota = date('YmdHis') . $_SESSION['admin']['id'];
+                                $user_id = $_SESSION['admin']['id'];
+                                $instansi = htmlspecialchars($_POST['instansi']);
 
-                            $alamat_lengkap = $_POST['alamat_lengkap'];
+                                $alamat_lengkap = $_POST['alamat_lengkap'];
                                 preg_match(
                                     "/Provinsi (.*?), Kabupaten\/Kota (.*?), Kecamatan (.*?), Desa\/Kelurahan (.*?), (.*?), (\d+)/", $alamat_lengkap, $matches
                                 );
-                            $provinsi = isset($matches[1]) ? $matches[1] : '';
-                            $kota = isset($matches[2]) ? $matches[2] : '';
-                            $kecamatan = isset($matches[3]) ? $matches[3] : '';
-                            $kelurahan = isset($matches[4]) ? $matches[4] : '';
-                            $alamat = isset($matches[5]) ? $matches[5] : '';
-                            $kode_pos = isset($matches[6]) ? $matches[6] : '';
+                                $provinsi = isset($matches[1]) ? $matches[1] : '';
+                                $kota = isset($matches[2]) ? $matches[2] : '';
+                                $kecamatan = isset($matches[3]) ? $matches[3] : '';
+                                $kelurahan = isset($matches[4]) ? $matches[4] : '';
+                                $alamat = isset($matches[5]) ? $matches[5] : '';
+                                $kode_pos = isset($matches[6]) ? $matches[6] : '';
 
-                            $nama_lengkap = htmlspecialchars($_POST['nama_lengkap']);
-                            $no_telp = htmlspecialchars($_POST['no_telp']);
+                                $nama_lengkap = htmlspecialchars($_POST['nama_lengkap']);
+                                $no_telp = htmlspecialchars($_POST['no_telp']);
 
-                            $con->query("INSERT INTO transaksi (tgl, nama_pelanggan, user_id, instansi, provinsi, kota, kecamatan, kelurahan, kode_pos, alamat, no_nota, status, nohp, total) VALUES (now(), '$nama_lengkap', '$user_id', '$instansi', '$provinsi', '$kota', '$kecamatan', '$kelurahan', '$kode_pos', '$alamat', '$code_nota', 'Diproses', '$no_telp', '$grandTotal')");
+                                $con->query("INSERT INTO transaksi (tgl, nama_pelanggan, user_id, instansi, provinsi, kota, kecamatan, kelurahan, kode_pos, alamat, no_nota, status, nohp, total) VALUES (now(), '$nama_lengkap', '$user_id', '$instansi', '$provinsi', '$kota', '$kecamatan', '$kelurahan', '$kode_pos', '$alamat', '$code_nota', 'Diproses', '$no_telp', '$grandTotal')");
 
-                            foreach ($getCart as $data) {
-                                $produk = $data['nama_obat'];
-                                $harga = $data['harga_terbaru'];
-                                $jumlah = $data['jumlah'];
-                                $sub_harga = $data['harga_terbaru'] * $data['jumlah'];
+                                foreach ($getCart as $data) {
+                                    $produk = $data['nama_obat'];
+                                    $harga = $data['harga_terbaru'];
+                                    $jumlah = $data['jumlah'];
+                                    $sub_harga = $harga * $data['jumlah'];
 
-                                $con->query("INSERT INTO transaksi_produk (no_nota, nama_obat, jumlah, sub_total) VALUES ('$code_nota', '$produk', '$jumlah', '$sub_harga')");
-                            }
+                                    $con->query("INSERT INTO transaksi_produk (no_nota, nama_obat, jumlah, sub_total) VALUES ('$code_nota', '$produk', '$jumlah', '$sub_harga')");
+                                    $con->query("UPDATE stok SET stok = stok - $jumlah WHERE nama_obat = '$produk'");
+                                }
 
-
-                            $con->query("DELETE FROM keranjang WHERE user_id = '$user_id'");
-                            echo "
+                                $con->query("DELETE FROM keranjang WHERE user_id = '$user_id'");
+                                echo "
                                     <script>
                                         alert('Berhasil Check Out, Lakukan Pembayaran Dengan Transfer Ke Nomor Rekening 330101007238502 BRI, dan Upload Bukti Pembayaran Anda');
                                         document.location.href='index.php?halaman=shop';
                                     </script>
                                 ";
+                            }
                         }
 
                         if (isset($_POST['savedatadiri'])) {
@@ -490,8 +500,7 @@
                             $alamat = htmlspecialchars($_POST["alamat"]);
 
                             $con->query("UPDATE user SET provinsi='$provinsi', kota='$kota', kecamatan='$kecamatan', kelurahan='$kelurahan', kode_pos='$kode_pos', alamat='$alamat' WHERE id = '" . $_SESSION['admin']['id'] . "'");
-                            // $getNewPasien = $con->query("SELECT * FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '" . $_SESSION['admin']['username'] . "' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;")->fetch_assoc();
-                            $getNewPasien = $con->query("SELECT user.id, user.nama_lengkap, user.username, user.password, user.nohp, user.provinsi, user.kota, user.kecamatan, user.kelurahan, user.kode_pos, user.alamat, user.role  FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '" . $_SESSION['admin']['username'] . "' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;")->fetch_assoc();
+                            $getNewPasien = $con->query("SELECT user.id, user.nama_lengkap, user.username, user.password, user.nohp, user.provinsi, user.kota, user.kecamatan, user.kelurahan, user.kode_pos, user.alamat, user.role, transaksi.instansi  FROM user LEFT JOIN transaksi ON transaksi.user_id = user.id WHERE username = '" . $_SESSION['admin']['username'] . "' AND (transaksi.provinsi != '' OR transaksi.provinsi IS NULL) LIMIT 1;")->fetch_assoc();
                             $_SESSION['admin'] = '';
 
                             $_SESSION['admin'] = $getNewPasien;
