@@ -210,9 +210,12 @@ if (isset($_POST['update'])) {
                                                     onclick="editTransaction('<?php echo $data['id']; ?>', '<?php echo $data['tgl']; ?>', '<?php echo $data['namaakun']; ?>', '<?php echo $data['debet']; ?>', '<?php echo $data['kredit']; ?>', '<?php echo $data['ket1']; ?>', '<?php echo $data['ket2']; ?>')">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>
+
+                                                <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
                                                 <a href="index.php?hal=transaksi&delete=<?php echo $data['idtx']; ?>" class="btn btn-danger" onclick="return confirm('Apakah anda yakin ingin menghapus transaksi ini?')">
                                                     <i class="bi bi-trash text-white"></i>
                                                 </a>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
