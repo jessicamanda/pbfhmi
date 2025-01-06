@@ -107,7 +107,8 @@ if (isset($_GET['delete'])) {
                     <div class="">
                         <label for="margin" class="form-label">Margin</label>
                         <div class="input-group">
-                            <input type="number" class="form-control" name="margin" id="margin" value="<?= htmlspecialchars($margin); ?>" required>
+                            <input type="number" class="form-control" name="margin" id="margin"value="<?= isset($margin) && $margin !== '' ? htmlspecialchars($margin) : '100'; ?>"
+                            required>
                         </div>
                     </div>
                     <div class="">

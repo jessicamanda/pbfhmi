@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 13, 2024 at 08:56 AM
+-- Generation Time: Jan 06, 2025 at 04:07 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -41,15 +41,6 @@ CREATE TABLE `absensi` (
   `longitude` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `absensi`
---
-
-INSERT INTO `absensi` (`id`, `tanggal_absen`, `nama_karyawan`, `jam_kerja`, `jam_masuk`, `jam_pulang`, `telat_masuk`, `status_masuk`, `foto_absen`, `latitude`, `longitude`) VALUES
-(3, '2024-12-06', 'sales2', '00:00:00', '10:56:21', '00:00:00', '-25621', 'Telat', 'webcam-toy-photo2.jpg', NULL, NULL),
-(6, '2024-12-10', 'sales', '00:00:00', '10:13:45', '00:00:00', '-21345', 'Telat', '17338003667041762499015742133882.jpg', '-8.1191099', '113.230183'),
-(12, '2024-12-11', 'sales', '08:00:00', '10:05:09', '16:00:00', '-20509', 'Telat', '17338862960185570599615766023062.jpg', '-8.1192683', '113.2301836');
-
 -- --------------------------------------------------------
 
 --
@@ -69,12 +60,43 @@ CREATE TABLE `absensi_pulang` (
   `longitude` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `absensi_pulang`
+-- Table structure for table `cart`
 --
 
-INSERT INTO `absensi_pulang` (`idplg`, `nama_lengkap`, `tanggal_absen_plg`, `jam_pulang`, `jam_kerja`, `foto_absen_plg`, `pulang_cepat`, `status_plg`, `latitude`, `longitude`) VALUES
-(6, 'sales', '2024-12-11', '10:10:07', '08:00:00-16:00:00', 'Ban Bocor.png', '-21007', 'Pulang Cepat', '-8.1362944', '113.7278976');
+CREATE TABLE `cart` (
+  `id` int(11) NOT NULL,
+  `session_id` varchar(255) NOT NULL,
+  `nama_obat` varchar(200) NOT NULL,
+  `harga` varchar(200) NOT NULL,
+  `jumlah` varchar(200) NOT NULL,
+  `ppn` varchar(200) NOT NULL,
+  `total` varchar(500) NOT NULL,
+  `harga_jual` int(11) NOT NULL,
+  `tgl_exp` date NOT NULL,
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `keranjang`
+--
+
+CREATE TABLE `keranjang` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `nama_lengkap` varchar(150) NOT NULL,
+  `id_obat` int(11) NOT NULL,
+  `nama_obat` varchar(200) NOT NULL,
+  `harga` varchar(50) NOT NULL,
+  `jumlah` varchar(50) NOT NULL,
+  `sub_harga` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -88,17 +110,10 @@ CREATE TABLE `obat` (
   `mq` varchar(200) NOT NULL,
   `margin` varchar(200) NOT NULL,
   `foto` varchar(255) DEFAULT NULL,
+  `deskripsi` varchar(200) NOT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `obat`
---
-
-INSERT INTO `obat` (`id`, `nama_obat`, `mq`, `margin`, `foto`, `created_at`, `updated_at`) VALUES
-(23, 'asam mefenamat', '1', '7', 'CozyRoom (1).png', '2024-12-06 09:06:23', '2024-12-06 09:06:23'),
-(24, 'paracetamol', '3', '7', '67525f1414f4b.jpg', '2024-12-06 09:07:33', '2024-12-06 09:19:00');
 
 -- --------------------------------------------------------
 
@@ -114,16 +129,6 @@ CREATE TABLE `pembayaran` (
   `nominal` varchar(200) NOT NULL,
   `foto` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pembayaran`
---
-
-INSERT INTO `pembayaran` (`id_pembayaran`, `id_pembelian`, `tgl_bayar`, `nama_obat`, `nominal`, `foto`) VALUES
-(32, 9, '2024-12-10', 'asam mefenamat', '3000000', 'checked-9-128.png'),
-(33, 9, '2024-12-10', 'asam mefenamat', '24000', 'checked-9-128.png'),
-(34, 10, '2024-12-11', 'paracetamol', '100000', 'WhatsApp Image 2024-09-05 at 10.16.56_621aca5f.jpg'),
-(35, 10, '2024-12-11', 'paracetamol', '567890', 'benner.png');
 
 -- --------------------------------------------------------
 
@@ -141,22 +146,16 @@ CREATE TABLE `pembelian` (
   `jumlah` varchar(200) NOT NULL,
   `ppn` varchar(200) NOT NULL,
   `total` varchar(500) NOT NULL,
+  `harga_jual` int(11) NOT NULL,
   `tipe` varchar(200) NOT NULL,
   `jatuh_tempo` date NOT NULL,
   `tgl_exp` date NOT NULL,
   `no_batch` varchar(200) NOT NULL,
   `status` varchar(50) NOT NULL,
   `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL
+  `updated_at` datetime NOT NULL,
+  `no_nota` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pembelian`
---
-
-INSERT INTO `pembelian` (`id_pembelian`, `tgl`, `nama_obat`, `namasuplier`, `nohp`, `harga`, `jumlah`, `ppn`, `total`, `tipe`, `jatuh_tempo`, `tgl_exp`, `no_batch`, `status`, `created_at`, `updated_at`) VALUES
-(9, '2024-12-10', 'asam mefenamat', 'yanto', '0987654321', '8000', '350', '8', '3024000', 'Non Pajak', '2024-12-31', '2024-12-31', '1', 'Sudah Datang', '2024-12-10 05:24:39', '0000-00-00 00:00:00'),
-(12, '2024-12-11', 'paracetamol', 'yanto', '0987654321', '1000', '1', '9', '1090', 'Non Pajak', '2024-12-04', '2024-12-04', '1', 'Belum Datang', '2024-12-11 08:10:52', '2024-12-11 08:11:08');
 
 -- --------------------------------------------------------
 
@@ -177,15 +176,6 @@ CREATE TABLE `sales` (
   `nik` int(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `sales`
---
-
-INSERT INTO `sales` (`id`, `nama_lengkap`, `username`, `password`, `jam_masuk`, `jam_pulang`, `jam_kerja`, `tanggal_lahir`, `alamat`, `nik`) VALUES
-(4, 'sales 1', 'sales1', 'sales1', '08:00:00', '16:00:00', '08:00:00-16:00:00', '1986-06-17', 'yoso', 987654321),
-(5, 'sales', 'sales', 'sales', '08:00:00', '16:00:00', '08:00:00-16:00:00', '2024-12-06', 'lmj', 987654321),
-(6, 'sales2', 'sales2', 'sales2', '10:49:00', '16:49:00', '', '2024-12-06', 'lmj', 2147483647);
-
 -- --------------------------------------------------------
 
 --
@@ -198,14 +188,6 @@ CREATE TABLE `stok` (
   `id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `stok`
---
-
-INSERT INTO `stok` (`nama_obat`, `stok`, `id`) VALUES
-('asam mefenamat', 300, 10),
-('paracetamol', 400, 11);
-
 -- --------------------------------------------------------
 
 --
@@ -217,14 +199,6 @@ CREATE TABLE `tempat_penyimpanan` (
   `nama_tempat` varchar(200) NOT NULL,
   `deskripsi` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `tempat_penyimpanan`
---
-
-INSERT INTO `tempat_penyimpanan` (`id_tempat`, `nama_tempat`, `deskripsi`) VALUES
-(2, 'kulkas', 'kk'),
-(3, 'gudang', 'gudanggggg');
 
 -- --------------------------------------------------------
 
@@ -241,15 +215,6 @@ CREATE TABLE `terima` (
   `id_tempat` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `terima`
---
-
-INSERT INTO `terima` (`id_terima`, `id_pembelian`, `tgl_terima`, `nama_obat`, `jumlah_terima`, `id_tempat`) VALUES
-(78, 9, '2024-12-11', 'asam mefenamat', '10', 2),
-(79, 9, '2024-12-11', 'asam mefenamat', '340', 3),
-(80, 10, '2024-12-11', 'paracetamol', '490', 2);
-
 -- --------------------------------------------------------
 
 --
@@ -260,21 +225,36 @@ CREATE TABLE `transaksi` (
   `id_penjualan` int(11) NOT NULL,
   `tgl` varchar(50) NOT NULL,
   `nama_pelanggan` varchar(200) NOT NULL,
+  `user_id` int(11) NOT NULL DEFAULT 0,
+  `sales_id` int(11) DEFAULT NULL,
   `instansi` varchar(200) NOT NULL,
+  `provinsi` varchar(50) NOT NULL,
+  `kota` varchar(50) NOT NULL,
+  `kecamatan` varchar(50) NOT NULL,
+  `kelurahan` varchar(50) NOT NULL,
+  `kode_pos` varchar(50) NOT NULL,
   `alamat` varchar(200) NOT NULL,
   `no_nota` varchar(200) NOT NULL,
   `status` varchar(200) NOT NULL,
   `nohp` varchar(200) NOT NULL,
-  `total` int(50) NOT NULL
+  `total` int(50) NOT NULL,
+  `jatuh_tempo` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `transaksi`
+-- Table structure for table `transaksi_pembayaran`
 --
 
-INSERT INTO `transaksi` (`id_penjualan`, `tgl`, `nama_pelanggan`, `instansi`, `alamat`, `no_nota`, `status`, `nohp`, `total`) VALUES
-(17, '2024-12-11', 'jessica', 'solv', 'yoso', '20241211045903', 'ACC', '081230812369', 32000),
-(18, '2024-12-13', 'jessica', 'solv', 'yoso', '20241213032230', 'Diproses', '081230812369', 858000);
+CREATE TABLE `transaksi_pembayaran` (
+  `id_pembayaran` int(11) NOT NULL,
+  `id_penjualan` int(11) NOT NULL,
+  `tgl_bayar` date NOT NULL,
+  `nama_obat` varchar(200) NOT NULL,
+  `nominal` varchar(200) NOT NULL,
+  `foto` varchar(200) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -289,15 +269,6 @@ CREATE TABLE `transaksi_produk` (
   `sub_total` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `transaksi_produk`
---
-
-INSERT INTO `transaksi_produk` (`no_nota`, `nama_obat`, `jumlah`, `sub_total`) VALUES
-('20241211045903', 'asam mefenamat', 4, 32000),
-('20241213032230', 'paracetamol', 90, 90000),
-('20241213032230', 'asam mefenamat', 96, 768000);
-
 -- --------------------------------------------------------
 
 --
@@ -305,24 +276,32 @@ INSERT INTO `transaksi_produk` (`no_nota`, `nama_obat`, `jumlah`, `sub_total`) V
 --
 
 CREATE TABLE `user` (
-  `id` varchar(13) NOT NULL,
+  `id` int(11) NOT NULL,
   `nama_lengkap` varchar(50) NOT NULL,
   `username` varchar(250) NOT NULL,
   `password` varchar(250) NOT NULL,
+  `nohp` int(11) NOT NULL,
   `role` enum('ceo','purchasing','akuntansi','gudang','sales','pelanggan') NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `provinsi` varchar(50) NOT NULL,
+  `kota` varchar(50) NOT NULL,
+  `kecamatan` varchar(50) NOT NULL,
+  `kelurahan` varchar(50) NOT NULL,
+  `kode_pos` varchar(50) NOT NULL,
+  `alamat` varchar(200) NOT NULL,
+  `sipa` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `nama_lengkap`, `username`, `password`, `role`, `created_at`) VALUES
-('1', 'ceo', 'ceo', '001', 'ceo', '2024-12-02 14:59:10'),
-('1', 'ceo', 'ceo', '001', 'ceo', '2024-12-02 14:59:14'),
-('2', 'sales', 'sales', 'sales', 'sales', '2024-12-05 09:28:16'),
-('', 'saless', 'saless', 'saless', 'ceo', '2024-12-06 10:47:49'),
-('', 'sales2', 'sales2', 'sales2', 'sales', '2024-12-06 10:49:21');
+INSERT INTO `user` (`id`, `nama_lengkap`, `username`, `password`, `nohp`, `role`, `created_at`, `provinsi`, `kota`, `kecamatan`, `kelurahan`, `kode_pos`, `alamat`, `sipa`) VALUES
+(1, 'ceo', 'ceo', '001', 0, 'ceo', '2024-12-02 14:59:10', '', '', '', '', '', '', ''),
+(2, 'purchasing', 'purchasing', '002', 0, 'purchasing', '2024-12-05 09:28:16', '', '', '', '', '', '', ''),
+(3, 'gudang', 'gudang', '003', 0, 'gudang', '2024-12-17 09:09:21', '', '', '', '', '', '', ''),
+(4, 'akuntansi', 'akuntansi', '004', 0, 'akuntansi', '2024-12-17 09:13:43', '', '', '', '', '', '', ''),
+(5, 'sales', 'sales', '005', 0, 'sales', '2024-12-17 09:32:17', '', '', '', '', '', '', '');
 
 --
 -- Indexes for dumped tables
@@ -339,6 +318,18 @@ ALTER TABLE `absensi`
 --
 ALTER TABLE `absensi_pulang`
   ADD PRIMARY KEY (`idplg`);
+
+--
+-- Indexes for table `cart`
+--
+ALTER TABLE `cart`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `keranjang`
+--
+ALTER TABLE `keranjang`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `obat`
@@ -389,6 +380,18 @@ ALTER TABLE `transaksi`
   ADD PRIMARY KEY (`id_penjualan`);
 
 --
+-- Indexes for table `transaksi_pembayaran`
+--
+ALTER TABLE `transaksi_pembayaran`
+  ADD PRIMARY KEY (`id_pembayaran`);
+
+--
+-- Indexes for table `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -396,61 +399,85 @@ ALTER TABLE `transaksi`
 -- AUTO_INCREMENT for table `absensi`
 --
 ALTER TABLE `absensi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `absensi_pulang`
 --
 ALTER TABLE `absensi_pulang`
-  MODIFY `idplg` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `idplg` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `cart`
+--
+ALTER TABLE `cart`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `keranjang`
+--
+ALTER TABLE `keranjang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `obat`
 --
 ALTER TABLE `obat`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `pembayaran`
 --
 ALTER TABLE `pembayaran`
-  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT for table `pembelian`
 --
 ALTER TABLE `pembelian`
-  MODIFY `id_pembelian` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_pembelian` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `sales`
 --
 ALTER TABLE `sales`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `stok`
 --
 ALTER TABLE `stok`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `tempat_penyimpanan`
 --
 ALTER TABLE `tempat_penyimpanan`
-  MODIFY `id_tempat` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_tempat` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `terima`
 --
 ALTER TABLE `terima`
-  MODIFY `id_terima` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `id_terima` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=195;
 
 --
 -- AUTO_INCREMENT for table `transaksi`
 --
 ALTER TABLE `transaksi`
-  MODIFY `id_penjualan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id_penjualan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+
+--
+-- AUTO_INCREMENT for table `transaksi_pembayaran`
+--
+ALTER TABLE `transaksi_pembayaran`
+  MODIFY `id_pembayaran` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT for table `user`
+--
+ALTER TABLE `user`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
