@@ -87,6 +87,19 @@
             <span class="nav-link-text ms-1">Pembelian</span>
           </a>
         </li>
+        <li class="nav-item ">
+          <a class="nav-link <?php if (isset($_GET['hal'])) {
+                                if (htmlspecialchars($_GET['hal']) == 'data-purchasing') {
+                                  echo "active";
+                                }
+                              } ?>" href="index.php?hal=data-purchasing">
+            <div
+              class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="bi bi-cash text-sm opacity-10" style="color: #0F5220;"></i>
+            </div>
+            <span class="nav-link-text ms-1">Data Purchasing</span>
+          </a>
+        </li>
 
 
         <!-- <li class="nav-item ">
@@ -198,7 +211,7 @@
                               } ?>" href="index.php?hal=obat-macet">
             <div
               class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="bi bi-cash text-sm opacity-10" style="color: #0F5220;"></i>
+              <i class="bi bi-capsule text-sm opacity-10" style="color: #0F5220;"></i>
             </div>
             <span class="nav-link-text ms-1">Obat Macet</span>
           </a>
@@ -355,6 +368,21 @@
                 <i class="bi bi-person text-sm opacity-10" style="color: #0F5220;"></i>
               </div>
               <span class="nav-link-text ms-1">Data Sales</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link <?php if (isset($_GET['hal'])) {
+                                  if (htmlspecialchars($_GET['hal']) == 'data-pelanggan') {
+                                    echo "active";
+                                  }
+                                } ?>" href="index.php?hal=data-pelanggan">
+
+              <div
+                class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                <i class="bi bi-person text-sm opacity-10" style="color: #0F5220;"></i>
+              </div>
+              <span class="nav-link-text ms-1">Data Pelanggan</span>
             </a>
           </li>
         <?php endif; ?>

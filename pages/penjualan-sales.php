@@ -17,6 +17,8 @@ if (isset($_POST['save'])) {
     $kelurahan = htmlspecialchars($_POST['kelurahan']);
     $kode_pos = htmlspecialchars($_POST['kode_pos']);
     $alamat = htmlspecialchars($_POST['alamat']);
+    $sipa = htmlspecialchars($_POST['sipa']);
+    $jatuh_tempo = htmlspecialchars($_POST['jatuh_tempo']);
     $instansi = htmlspecialchars($_POST['instansi']);
     $status = 'Diproses';
     $total = array_sum(array_column($_SESSION['keranjang'], 'sub_total'));
@@ -39,8 +41,8 @@ if (isset($_POST['save'])) {
 
     $user_id = $getLastUser['id'] + 1;
 
-    $con->query("INSERT INTO transaksi (tgl, no_nota, nama_pelanggan, user_id, instansi, nohp, alamat, total, status,provinsi, kota, kecamatan, kelurahan,kode_pos, sales_id) VALUES ('$tgl', '$no_nota', '$nama_pelanggan', '$user_id', '$instansi', '$nohp', '$alamat', '$total', '$status', '$provinsi', '$kota', '$kecamatan', '$kelurahan','$kode_pos', '$sales_id')");
-    $con->query("INSERT INTO user (id, username, nama_lengkap, password, role, nohp) VALUES ('$user_id', '$nama_pelanggan', '$nama_pelanggan', '$nohp', 'pelanggan', '$nohp')");
+    $con->query("INSERT INTO transaksi (tgl, no_nota, nama_pelanggan, user_id, instansi, nohp, alamat, total, status,provinsi, kota, kecamatan, kelurahan,kode_pos, sales_id, jatuh_tempo) VALUES ('$tgl', '$no_nota', '$nama_pelanggan', '$user_id', '$instansi', '$nohp', '$alamat', '$total', '$status', '$provinsi', '$kota', '$kecamatan', '$kelurahan','$kode_pos', '$sales_id', '$jatuh_tempo')");
+    $con->query("INSERT INTO user (id, username, nama_lengkap, password, role, nohp, sipa) VALUES ('$user_id', '$nama_pelanggan', '$nama_pelanggan', '$nohp', 'pelanggan', '$nohp', '$sipa')");
 
     foreach ($_SESSION['keranjang'] as $item) {
         $nama_obat = $item['nama_obat'];
@@ -118,23 +120,23 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <select name="nama_obat" class="form-control" id="nama_obat" required>
                                 <option value="" disabled selected>Pilih Nama Obat</option>
                                 <?php
-$ambil = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok 
-FROM obat 
-LEFT JOIN stok ON obat.nama_obat = stok.nama_obat 
-LEFT JOIN (
-    SELECT p1.* 
-    FROM pembelian p1 
-    WHERE p1.created_at = (
-        SELECT MAX(p2.created_at) 
-        FROM pembelian p2 
-        WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang'
-    )
-) AS pembelian ON obat.nama_obat = pembelian.nama_obat 
-ORDER BY obat.id DESC");
-while ($pecah = $ambil->fetch_assoc()) {
-?>
-    <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga_terbaru']; ?>"><?php echo $pecah['nama_obat']; ?></option>
-<?php } ?>
+                                    $ambil = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok 
+                                    FROM obat 
+                                    LEFT JOIN stok ON obat.nama_obat = stok.nama_obat 
+                                    LEFT JOIN (
+                                        SELECT p1.* 
+                                        FROM pembelian p1 
+                                        WHERE p1.created_at = (
+                                            SELECT MAX(p2.created_at) 
+                                            FROM pembelian p2 
+                                            WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang'
+                                        )
+                                    ) AS pembelian ON obat.nama_obat = pembelian.nama_obat 
+                                    ORDER BY obat.id DESC");
+                                    while ($pecah = $ambil->fetch_assoc()) {
+                                    ?>
+                                        <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga_terbaru']; ?>"><?php echo $pecah['nama_obat']; ?></option>
+                                    <?php } ?>
 
                             </select>
                         </div>
@@ -221,6 +223,12 @@ while ($pecah = $ambil->fetch_assoc()) {
                             </div>
                         </div>
                         <div class="">
+                            <label for="" class="form-label">Tenggat SIPA (Surat Ijin Praktek Apoteker)</label>
+                            <div class="input-group">
+                                <input type="date" name="sipa" class="form-control" id="sipa">
+                            </div>
+                        </div>
+                        <div class="">
                             <label for="" class="form-label">Instansi</label>
                             <div class="input-group">
                                 <input type="text" name="instansi" class="form-control" id="instansi">
@@ -273,6 +281,12 @@ while ($pecah = $ambil->fetch_assoc()) {
                             <div class="input-group">
                                 <textarea type="text" style="min-height: 150px;" name="alamat" class="form-control border border-success" id="alamat"
                                     placeholder="Alamat Lengkap" value=""></textarea>
+                            </div>
+                        </div>
+                        <div class="">
+                            <label for="" class="form-label">Jatuh Tempo Pembayaran</label>
+                            <div class="input-group">
+                                <input type="date" name="jatuh_tempo" class="form-control" id="jatuh_tempo">
                             </div>
                         </div>
                     </div>

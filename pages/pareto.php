@@ -14,10 +14,11 @@
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>ID Pembelian</th>
-                                <th>Tanggal</th>
+                                <!-- <th>ID Pembelian</th>
+                                <th>Tanggal</th> -->
                                 <th>Nama Obat</th>
-                                <th>Nama Suplier</th>
+                                <th>Total Pembelian</th>
+                                <!-- <th>Nama Suplier</th>
                                 <th>No HP</th>
                                 <th>Harga</th>
                                 <th>PPN</th>
@@ -26,7 +27,7 @@
                                 <th>Jatuh Tempo</th>
                                 <th>Tanggal Expired</th>
                                 <th>No Batch</th>
-                                <th>Status</th>
+                                <th>Status</th> -->
                                 <!-- <th>Aksi</th> -->
                             </tr>
                         </thead>
@@ -37,11 +38,12 @@
                             while ($pecah = $ambil->fetch_assoc()) { ?>
                                 <tr>
                                     <td><?php echo $no++; ?></td>
-                                    <td><?php echo $pecah["id_pembelian"]; ?></td>
-                                    <td><?php echo $pecah["tgl"]; ?></td>
+                                    <!-- <td><?php echo $pecah["id_pembelian"]; ?></td>
+                                    <td><?php echo $pecah["tgl"]; ?></td> -->
                                     <td><?php echo $pecah["nama_obat"]; ?></td>
-                                    <td><?php echo $pecah["namasuplier"]; ?></td>
-                                    <td><?php echo $pecah["nohp"]; ?></td>
+                                    <td><?php echo $pecah["total_pembelian"]; ?></td>
+                                    <!-- <td><?php echo $pecah["namasuplier"]; ?></td> -->
+                                    <!-- <td><?php echo $pecah["nohp"]; ?></td>
                                     <td><?php echo $pecah["harga"]; ?></td>
                                     <td><?php echo $pecah["ppn"]; ?></td>
                                     <td><?php echo $pecah["total"]; ?></td>
@@ -49,7 +51,7 @@
                                     <td><?php echo $pecah["jatuh_tempo"]; ?></td>
                                     <td><?php echo $pecah["tgl_exp"]; ?></td>
                                     <td><?php echo $pecah["no_batch"]; ?></td>
-                                    <td><?php echo $pecah["status"]; ?></td>
+                                    <td><?php echo $pecah["status"]; ?></td> -->
                                     <!-- <td>
                                         <a href="index.php?hal=pembelian&edit=<?php echo $pecah['id_pembelian']; ?>" class="btn btn-primary btn-edit">
                                             <i class="bi bi-pencil-square"></i>

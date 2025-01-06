@@ -86,53 +86,48 @@ if (isset($_GET['delete'])) {
 
 
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card shadow p-2 mt-2">
-                    <form action="" method="post" id="tambah_edit_form" enctype="multipart/form-data">
-                        <input type="hidden" name="mode" value="<?php echo $mode; ?>">
-                        <input type="hidden" name="edit_id" value="<?php echo $edit_id; ?>">
-                        <div class="modal-body">
-                            <div class="">
-                                <label for="nama_obat" class="form-label">Nama Obat</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" name="nama_obat" id="nama_obat" value="<?= htmlspecialchars($nama_obat); ?>" required>
-                                </div>
-                            </div>
-                            <div class="">
-                                <label for="mq" class="form-label">Minimum Quantity</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="mq" id="mq" value="<?= htmlspecialchars($mq); ?>" required>
-                                </div>
-                            </div>
-                            <div class="">
-                                <label for="margin" class="form-label">Margin</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" name="margin" id="margin" value="<?= htmlspecialchars($margin); ?>" required>
-                                </div>
-                            </div>
-                            <div class="">
-                                <label for="deskripsi" class="form-label">deskripsi</label>
-                                <div class="input-group">
-                                <textarea class="form-control" rows="4" name="deskripsi" id="deskripsi"></textarea>
-                                </div>
-                            </div>
-                            <div class="">
-                                <label for="margin" class="form-label">Foto</label>
-                                <div class="input-group">
-                                    <input type="file" class="form-control" name="foto" id="foto">
-                                    <input type="hidden" name="existing_foto" value="<?php echo $foto; ?>">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-primary mt-3" name="save">
-                                <?php echo ($mode == "edit") ? "Update Data" : "Simpan Data"; ?>
-                            </button>
+    <div class="card mb-4">
+        <div class="card shadow p-2 mt-2">
+            <form action="" method="post" id="tambah_edit_form" enctype="multipart/form-data">
+                <input type="hidden" name="mode" value="<?php echo $mode; ?>">
+                <input type="hidden" name="edit_id" value="<?php echo $edit_id; ?>">
+                <div class="modal-body">
+                    <div class="">
+                        <label for="nama_obat" class="form-label">Nama Obat</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="nama_obat" id="nama_obat" value="<?= htmlspecialchars($nama_obat); ?>" required>
                         </div>
-                    </form>
+                    </div>
+                    <div class="">
+                        <label for="mq" class="form-label">Minimum Quantity</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="mq" id="mq" value="<?= htmlspecialchars($mq); ?>" required>
+                        </div>
+                    </div>
+                    <div class="">
+                        <label for="margin" class="form-label">Margin</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" name="margin" id="margin" value="<?= htmlspecialchars($margin); ?>" required>
+                        </div>
+                    </div>
+                    <div class="">
+                        <label for="deskripsi" class="form-label">deskripsi</label>
+                        <div class="input-group">
+                            <textarea class="form-control" rows="4" name="deskripsi" id="deskripsi"></textarea>
+                        </div>
+                    </div>
+                    <div class="">
+                        <label for="margin" class="form-label">Foto</label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" name="foto" id="foto">
+                            <input type="hidden" name="existing_foto" value="<?php echo $foto; ?>">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3" name="save">
+                        <?php echo ($mode == "edit") ? "Update Data" : "Simpan Data"; ?>
+                    </button>
                 </div>
-
-            </div>
+            </form>
         </div>
     </div>
 

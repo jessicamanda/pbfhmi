@@ -15,12 +15,23 @@ $id = mysqli_real_escape_string($con, $id);
 
 $transaksi_produk = $con->query("SELECT transaksi.id_penjualan, transaksi.no_nota,transaksi.instansi, transaksi.status, transaksi.tgl, 
     transaksi.nama_pelanggan, transaksi.alamat, transaksi.provinsi, transaksi.kota, transaksi.kelurahan, transaksi.kecamatan, transaksi.kode_pos, transaksi.nohp, transaksi.total,transaksi_produk.nama_obat,
-    transaksi_produk.jumlah,transaksi_produk.sub_total FROM transaksi LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota
+    transaksi_produk.jumlah,transaksi_produk.sub_total,transaksi.jatuh_tempo FROM transaksi LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota
     WHERE transaksi.sales_id = '$id'");
 
 $transaksi_pembayaran = $con->query("SELECT transaksi.id_penjualan, transaksi_pembayaran.tgl_bayar, transaksi_pembayaran.nominal, 
         transaksi_pembayaran.foto FROM transaksi LEFT JOIN transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan
     WHERE transaksi.sales_id = '$id'");
+
+if ($_SESSION['admin']['role'] === 'ceo' || $_SESSION['admin']['role'] === 'akuntansi'):
+
+    $transaksi_produk = $con->query("SELECT transaksi.id_penjualan, transaksi.no_nota,transaksi.instansi, transaksi.status, transaksi.tgl, 
+    transaksi.nama_pelanggan, transaksi.alamat, transaksi.provinsi, transaksi.kota, transaksi.kelurahan, transaksi.kecamatan, transaksi.kode_pos, transaksi.nohp, transaksi.total,transaksi_produk.nama_obat,
+    transaksi_produk.jumlah,transaksi_produk.sub_total,transaksi.jatuh_tempo FROM transaksi LEFT JOIN transaksi_produk ON transaksi.no_nota = transaksi_produk.no_nota");
+
+    $transaksi_pembayaran = $con->query("SELECT transaksi.id_penjualan, transaksi_pembayaran.tgl_bayar, transaksi_pembayaran.nominal, 
+        transaksi_pembayaran.foto FROM transaksi LEFT JOIN transaksi_pembayaran ON transaksi.id_penjualan = transaksi_pembayaran.id_penjualan");
+
+endif;
 
 $data = [];
 while ($row = $transaksi_produk->fetch_assoc()) {
@@ -39,6 +50,7 @@ while ($row = $transaksi_produk->fetch_assoc()) {
             'provinsi' => $row['provinsi'],
             'kota' => $row['kota'],
             'kecamatan' => $row['kecamatan'],
+            'jatuh_tempo' => $row['jatuh_tempo'],
             'kelurahan' => $row['kelurahan'],
             'kode_pos' => $row['kode_pos'],
             'produk' => [],
@@ -161,6 +173,7 @@ if (isset($_POST['save'])) {
                                 <th rowspan="2">Alamat</th>
                                 <th colspan="3" style="text-align: center;">Produk</th>
                                 <th rowspan="2">Total</th>
+                                <th rowspan="2">Jatuh Tempo</th>
                                 <th rowspan="2">Status</th>
                                 <th rowspan="2">Sisa yang harus dibayar</th>
                                 <?php if ($_SESSION['admin']['role'] === 'ceo'): ?>
@@ -169,6 +182,7 @@ if (isset($_POST['save'])) {
                                 <?php if ($_SESSION['admin']['role'] === 'sales'): ?>
                                     <th colspan="4" style="text-align: center;">Penerimaan</th>
                                 <?php endif ?>
+                                <th rowspan="2">Print No Faktur</th>
                             </tr>
                             <tr>
                                 <th>Nama Obat</th>
@@ -241,6 +255,7 @@ if (isset($_POST['save'])) {
                                         ?>
                                     </td>
                                     <td><b>Rp <?= number_format($pecah["total"], 0, '', '.') ?></b></td>
+                                    <td><b><?=$pecah["jatuh_tempo"]?></b></td>
                                     <td><?php echo $pecah["status"]; ?></td>
                                     <td style="color: red;"><b>Rp <?= number_format($sisa, 0, ',', '.') ?></b></td>
                                     <?php if ($_SESSION['admin']['role'] === 'ceo' && $pecah["status"] === 'Diproses'): ?>
@@ -301,6 +316,10 @@ if (isset($_POST['save'])) {
                                             </td>
                                         <?php endif ?>
                                     <?php endif ?>
+
+
+                                    <td> <a href="pages/print-nofaktur.php?print&nofaktur=<?php echo $pecah['no_nota']; ?>" target="_blank" class="btn btn-success" style="background-color: #3b7c47;">
+                                    <i class="bi bi-printer-fill mr-2"></i>                                        </a></td>
                                 </tr>
                             <?php } ?>
                         </tbody>

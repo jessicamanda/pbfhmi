@@ -53,6 +53,12 @@
                   <div class="mb-3">
                     <input type="password" name="password" class="form-control form-control-lg" placeholder="Password" aria-label="Password">
                   </div>
+                  <div class="">
+                            <label for="" class="form-label">Tenggat SIPA (Surat Ijin Praktek Apoteker)</label>
+                            <div class="input-group">
+                                <input type="date" name="sipa" class="form-control form-control-lg">
+                            </div>
+                        </div>
                   <div class="text-center">
                     <button type="submit" name="register" class="btn btn-lg btn-lg w-100 mt-4 mb-0 text-white" style="background-color: #0F5220;">Register</button>
                   </div>
@@ -68,12 +74,13 @@
                   $nohp = htmlspecialchars($_POST['nohp']);
                   $username = htmlspecialchars($_POST['username']);
                   $password = htmlspecialchars($_POST['password']);
+                  $sipa = htmlspecialchars($_POST['sipa']);
 
                   $result = $con->query("SELECT * FROM user WHERE username='$username'");
                   if ($result->num_rows > 0) {
                     echo "<script>alert('Username sudah digunakan');</script>";
                   } else {
-                    $con->query("INSERT INTO user (nama_lengkap, nohp, username, password, role) VALUES ('$nama_lengkap','$nohp', '$username','$password', 'pelanggan')");
+                    $con->query("INSERT INTO user (nama_lengkap, nohp, username, password, role, sipa) VALUES ('$nama_lengkap','$nohp', '$username','$password', 'pelanggan', '$sipa')");
                     echo "<script>alert('User berhasil disimpan'); document.location.href='./login-customer.php';</script>";
                   }
                 }

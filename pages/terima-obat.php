@@ -30,10 +30,8 @@ if (isset($_POST['save'])) {
                          VALUES ('$id_pembelian', '$tgl_terima', '$nama_obat', '$jumlah_terima', '$id_tempat')";
         $con->query($query_insert);
 
-        if ($sisa === $jumlah_terima) {
             $query_update = "UPDATE pembelian SET status='Sudah Datang' WHERE id_pembelian = '$id_pembelian'";
             $con->query($query_update);
-        }
 
         $stok = $con->query("SELECT * FROM stok WHERE nama_obat = '$nama_obat'");
         if ($stok->num_rows > 0) {
