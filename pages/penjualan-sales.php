@@ -120,19 +120,11 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
                             <select name="nama_obat" class="form-control" id="nama_obat" required>
                                 <option value="" disabled selected>Pilih Nama Obat</option>
                                 <?php
-                                    $ambil = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.margin, obat.foto, pembelian.harga_jual AS harga_terbaru, stok.stok 
-                                    FROM obat 
-                                    LEFT JOIN stok ON obat.nama_obat = stok.nama_obat 
-                                    LEFT JOIN (
-                                        SELECT p1.* 
-                                        FROM pembelian p1 
-                                        WHERE p1.created_at = (
-                                            SELECT MAX(p2.created_at) 
-                                            FROM pembelian p2 
-                                            WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang'
-                                        )
-                                    ) AS pembelian ON obat.nama_obat = pembelian.nama_obat 
-                                    ORDER BY obat.id DESC");
+                                   
+                                        $ambil = $con->query("SELECT obat.id AS id_obat, obat.nama_obat, obat.foto, obat.created_at AS obat_created_at, pembelian.id_pembelian, pembelian.created_at AS tanggal_pembelian, pembelian.harga_jual AS harga_terbaru, pembelian.jumlah, pembelian.created_at, pembelian.no_batch, pembelian.status, stok.stok, stok.id AS stok_id FROM obat 
+                                        LEFT JOIN stok ON obat.nama_obat = stok.nama_obat LEFT JOIN (SELECT p1.* FROM pembelian p1 WHERE p1.created_at = (SELECT MAX(p2.created_at) FROM pembelian p2 WHERE p2.nama_obat = p1.nama_obat AND p2.status = 'Sudah Datang')) pembelian ON obat.nama_obat = pembelian.nama_obat 
+                                        ORDER BY  obat.created_at DESC;");
+
                                     while ($pecah = $ambil->fetch_assoc()) {
                                     ?>
                                         <option value="<?php echo $pecah['nama_obat']; ?>" data-stok="<?php echo $pecah['stok']; ?>" data-harga="<?php echo $pecah['harga_terbaru']; ?>"><?php echo $pecah['nama_obat']; ?></option>
